@@ -113,7 +113,7 @@ def get_canonical_spans(orig_spans: List[List[Tuple[int, int]]], orig_caption: s
                     if not (new_spans[i][j][0] <= old_beg < old_end <= new_spans[i][j][1]):
                         raise PreprocessError(f"deleted spans should be contained in known span")
                     assert (
-                        new_spans[i][j][0] <= old_beg < old_end <= new_spans[i][j][1]
+                            new_spans[i][j][0] <= old_beg < old_end <= new_spans[i][j][1]
                     ), "deleted spans should be contained in known span"
                     new_spans[i][j] = (beg, end + delta)
                 else:
@@ -163,7 +163,7 @@ def get_canonical_spans(orig_spans: List[List[Tuple[int, int]]], orig_caption: s
         while pos != -1:
             # Check that we are matching a full word
             if (pos == 0 or caption[pos - 1] == " ") and (
-                pos + len(stop) == len(caption) or caption[pos + len(stop)] == " "
+                    pos + len(stop) == len(caption) or caption[pos + len(stop)] == " "
             ):
                 removed = stop
                 spaces = 0

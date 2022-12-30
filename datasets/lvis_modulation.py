@@ -13,7 +13,6 @@ class LvisModulatedDetection(ModulatedDetection):
 
 
 def build(image_set, args):
-
     img_dir = Path(args.coco2017_path)
     if args.lvis_subset is None or int(args.lvis_subset) == 100:
         ann_file = Path(args.modulated_lvis_ann_path) / f"finetune_lvis_{image_set}.json"

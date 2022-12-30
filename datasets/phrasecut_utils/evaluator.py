@@ -37,15 +37,15 @@ class Evaluator:
         self.summary_path = summary_path
 
     def eval_single_img(
-        self,
-        img_id,
-        im_pred_dict,
-        pred_mask_tag="pred_mask",
-        pred_boxes_tag=None,
-        correct_tag=None,
-        verbose=False,
-        mask_score_thresh=0,
-        log_to_evaluator=True,
+            self,
+            img_id,
+            im_pred_dict,
+            pred_mask_tag="pred_mask",
+            pred_boxes_tag=None,
+            correct_tag=None,
+            verbose=False,
+            mask_score_thresh=0,
+            log_to_evaluator=True,
     ):
         if img_id not in self.refvg_loader.img_ids:
             print("WARNING: IMG %d is not in RefVG %s. Ignored." % (img_id, self.refvg_split))

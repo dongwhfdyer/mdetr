@@ -197,10 +197,10 @@ class Item:
 
     def is_same(self, other):
         return (
-            self.color == other.color
-            and self.shape == other.shape
-            and self.size == other.size
-            and self.material == other.material
+                self.color == other.color
+                and self.shape == other.shape
+                and self.size == other.size
+                and self.material == other.material
         )
 
     def get_cat(self):
@@ -318,7 +318,7 @@ def find_node_id_in_template(program, idx, template):
             ), "Wrong function type"
             return ind_template
         if is_same_fun(program[ind_prog]["function"], template["nodes"][ind_template]["type"]) and not is_same_fun(
-            program[ind_prog + 1]["function"], template["nodes"][ind_template]["type"]
+                program[ind_prog + 1]["function"], template["nodes"][ind_template]["type"]
         ):
             ind_template += 1
         ind_prog += 1
@@ -343,9 +343,9 @@ def find_tokens(question, template: Dict, node_id, backtrack=True) -> List[List[
             assert pos != -1
             cur_tokens.append((pos, pos + len(function)))
         if (
-            (function in ["filter", "relate", "relate_filter"] or function[: len("filter_")] == "filter_")
-            and cur_id != node_id
-            and function != "filter_unique"
+                (function in ["filter", "relate", "relate_filter"] or function[: len("filter_")] == "filter_")
+                and cur_id != node_id
+                and function != "filter_unique"
         ):
             # "relate" filters object based on their physical position relative to another one (eg. "to the right of")
             # "filter" filters by attributes
@@ -354,10 +354,10 @@ def find_tokens(question, template: Dict, node_id, backtrack=True) -> List[List[
             assert len(cur_tokens) == 1, "Error, the relate filter is expected to yield only one possibility"
             cur_tokens = cur_tokens[0]
         if (
-            is_root
-            or function[: len("same_")] == "same_"
-            or function == "intersect"
-            or function[: len("filter_")] == "filter_"
+                is_root
+                or function[: len("same_")] == "same_"
+                or function == "intersect"
+                or function[: len("filter_")] == "filter_"
         ) and (is_root or function != "filter_unique"):
             # If a node verifies this condition, we are interested in its ancestors.
             # We get a list of list for each ancestors, and we need to do the "cartesian concatenation" of all of them
@@ -387,8 +387,8 @@ def find_tokens(question, template: Dict, node_id, backtrack=True) -> List[List[
     targets = template["nodes"][node_id]["side_inputs"]
 
     if (
-        template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
-        and backtrack
+            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
+            and backtrack
     ):
         tokens = backtrack_previous_nodes(node_id)
     else:
@@ -707,16 +707,16 @@ def convert_bounding_boxes(bboxes):
 
 
 def convert(
-    subset: str,
-    clevr_path: Path,
-    clevr_box_path: Optional[Path],
-    refclevr_path: Optional[Path],
-    output_path: Path,
-    no_caption: bool,
-    medium: bool,
-    templates,
-    next_img_id: int = 0,
-    next_id: int = 0,
+        subset: str,
+        clevr_path: Path,
+        clevr_box_path: Optional[Path],
+        refclevr_path: Optional[Path],
+        output_path: Path,
+        no_caption: bool,
+        medium: bool,
+        templates,
+        next_img_id: int = 0,
+        next_id: int = 0,
 ):
     """Do the heavy lifting on the given subset (eg 'train')"""
 

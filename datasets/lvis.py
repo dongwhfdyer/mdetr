@@ -257,7 +257,7 @@ def build(image_set, args):
     anno_root = args.lvis_minival_path
 
     assert (
-        image_set == "minival"
+            image_set == "minival"
     ), "This dataset file is meant for evaluation only. Currently, only minival is supported."
 
     img_folder = args.coco2017_path

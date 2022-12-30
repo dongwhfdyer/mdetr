@@ -19,20 +19,20 @@ from transformers import RobertaModel, RobertaTokenizerFast
 
 class Transformer(nn.Module):
     def __init__(
-        self,
-        d_model=512,
-        nhead=8,
-        num_encoder_layers=6,
-        num_decoder_layers=6,
-        dim_feedforward=2048,
-        dropout=0.1,
-        activation="relu",
-        normalize_before=False,
-        return_intermediate_dec=False,
-        pass_pos_and_query=True,
-        text_encoder_type="roberta-base",
-        freeze_text_encoder=False,
-        contrastive_loss=False,
+            self,
+            d_model=512,
+            nhead=8,
+            num_encoder_layers=6,
+            num_decoder_layers=6,
+            dim_feedforward=2048,
+            dropout=0.1,
+            activation="relu",
+            normalize_before=False,
+            return_intermediate_dec=False,
+            pass_pos_and_query=True,
+            text_encoder_type="roberta-base",
+            freeze_text_encoder=False,
+            contrastive_loss=False,
     ):
         super().__init__()
 
@@ -75,16 +75,16 @@ class Transformer(nn.Module):
                 nn.init.xavier_uniform_(p)
 
     def forward(
-        self,
-        src=None,
-        mask=None,
-        query_embed=None,
-        pos_embed=None,
-        text=None,
-        encode_and_save=True,
-        text_memory=None,
-        img_memory=None,
-        text_attention_mask=None,
+            self,
+            src=None,
+            mask=None,
+            query_embed=None,
+            pos_embed=None,
+            text=None,
+            encode_and_save=True,
+            text_memory=None,
+            img_memory=None,
+            text_attention_mask=None,
     ):
         if encode_and_save:
             # flatten NxCxHxW to HWxNxC
@@ -140,7 +140,7 @@ class Transformer(nn.Module):
 
             img_memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
 
-            text_memory = img_memory[-len(text_memory_resized) :]
+            text_memory = img_memory[-len(text_memory_resized):]
 
             assert img_memory.shape[1] == text_memory.shape[1] == tgt.shape[1]
             memory_cache = {
@@ -185,11 +185,11 @@ class TransformerEncoder(nn.Module):
         self.norm = norm
 
     def forward(
-        self,
-        src,
-        mask: Optional[Tensor] = None,
-        src_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
+            self,
+            src,
+            mask: Optional[Tensor] = None,
+            src_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
     ):
 
         output = src
@@ -212,17 +212,17 @@ class TransformerDecoder(nn.Module):
         self.return_intermediate = return_intermediate
 
     def forward(
-        self,
-        tgt,
-        memory,
-        text_memory,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        text_memory_key_padding_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
+            self,
+            tgt,
+            memory,
+            text_memory,
+            tgt_mask: Optional[Tensor] = None,
+            memory_mask: Optional[Tensor] = None,
+            text_memory_key_padding_mask: Optional[Tensor] = None,
+            tgt_key_padding_mask: Optional[Tensor] = None,
+            memory_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
+            query_pos: Optional[Tensor] = None,
     ):
         output = tgt
 
@@ -277,11 +277,11 @@ class TransformerEncoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_post(
-        self,
-        src,
-        src_mask: Optional[Tensor] = None,
-        src_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
+            self,
+            src,
+            src_mask: Optional[Tensor] = None,
+            src_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
     ):
         q = k = self.with_pos_embed(src, pos)
         src2 = self.self_attn(q, k, value=src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
@@ -293,11 +293,11 @@ class TransformerEncoderLayer(nn.Module):
         return src
 
     def forward_pre(
-        self,
-        src,
-        src_mask: Optional[Tensor] = None,
-        src_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
+            self,
+            src,
+            src_mask: Optional[Tensor] = None,
+            src_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
     ):
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
@@ -309,11 +309,11 @@ class TransformerEncoderLayer(nn.Module):
         return src
 
     def forward(
-        self,
-        src,
-        src_mask: Optional[Tensor] = None,
-        src_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
+            self,
+            src,
+            src_mask: Optional[Tensor] = None,
+            src_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
     ):
         if self.normalize_before:
             return self.forward_pre(src, src_mask, src_key_padding_mask, pos)
@@ -349,17 +349,17 @@ class TransformerDecoderLayer(nn.Module):
 
     # For now, trying one version where its self attn -> cross attn text -> cross attn image -> FFN
     def forward_post(
-        self,
-        tgt,
-        memory,
-        text_memory,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        text_memory_key_padding_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
+            self,
+            tgt,
+            memory,
+            text_memory,
+            tgt_mask: Optional[Tensor] = None,
+            memory_mask: Optional[Tensor] = None,
+            text_memory_key_padding_mask: Optional[Tensor] = None,
+            tgt_key_padding_mask: Optional[Tensor] = None,
+            memory_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
+            query_pos: Optional[Tensor] = None,
     ):
         q = k = self.with_pos_embed(tgt, query_pos)
 
@@ -397,17 +397,17 @@ class TransformerDecoderLayer(nn.Module):
         return tgt
 
     def forward_pre(
-        self,
-        tgt,
-        memory,
-        text_memory,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        text_memory_key_padding_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
+            self,
+            tgt,
+            memory,
+            text_memory,
+            tgt_mask: Optional[Tensor] = None,
+            memory_mask: Optional[Tensor] = None,
+            text_memory_key_padding_mask: Optional[Tensor] = None,
+            tgt_key_padding_mask: Optional[Tensor] = None,
+            memory_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
+            query_pos: Optional[Tensor] = None,
     ):
         assert False, "not implemented yet"
         tgt2 = self.norm1(tgt)
@@ -429,17 +429,17 @@ class TransformerDecoderLayer(nn.Module):
         return tgt
 
     def forward(
-        self,
-        tgt,
-        memory,
-        text_memory,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        text_memory_key_padding_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
+            self,
+            tgt,
+            memory,
+            text_memory,
+            tgt_mask: Optional[Tensor] = None,
+            memory_mask: Optional[Tensor] = None,
+            text_memory_key_padding_mask: Optional[Tensor] = None,
+            tgt_key_padding_mask: Optional[Tensor] = None,
+            memory_key_padding_mask: Optional[Tensor] = None,
+            pos: Optional[Tensor] = None,
+            query_pos: Optional[Tensor] = None,
     ):
         if self.normalize_before:
             return self.forward_pre(

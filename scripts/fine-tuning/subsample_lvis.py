@@ -44,7 +44,6 @@ def parse_args():
 
 
 def convert(split, data_path, output_path, fract):
-
     print("Loading annotations...")
     with open(data_path / f"lvis_v1_{split}.json", "r") as f:
         data = json.load(f)

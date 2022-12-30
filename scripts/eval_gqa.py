@@ -177,15 +177,15 @@ class GQAEvaluator:
 
 @torch.no_grad()
 def evaluate(
-    model,
-    criterion,
-    data_loader,
-    evaluator_list,
-    device,
-    output_dir,
-    args,
-    id2answer,
-    id2answerbytype,
+        model,
+        criterion,
+        data_loader,
+        evaluator_list,
+        device,
+        output_dir,
+        args,
+        id2answer,
+        id2answerbytype,
 ):
     model.eval()
     criterion.eval()

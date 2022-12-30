@@ -236,9 +236,8 @@ def get_equivalent_boxes(all_boxes, iou_threshold=0.95):
 
 
 def convert(
-    subset: str, flickr_path: Path, output_path: Path, merge_ground_truth: bool, next_img_id: int = 0, next_id: int = 0
+        subset: str, flickr_path: Path, output_path: Path, merge_ground_truth: bool, next_img_id: int = 0, next_id: int = 0
 ):
-
     with open(flickr_path / f"{subset}.txt") as fd:
         ids = [int(l.strip()) for l in fd]
 
@@ -317,7 +316,7 @@ def convert(
                 first_word = phrase["first_word_index"]
                 beg = sum([len(x) for x in sentence.split()[:first_word]]) + first_word
                 spans[global_phrase_id] = (beg, beg + len(phrase["phrase"]))
-                assert sentence[beg : beg + len(phrase["phrase"])] == phrase["phrase"]
+                assert sentence[beg: beg + len(phrase["phrase"])] == phrase["phrase"]
 
             all_boxes_in_sent = []
             for ent_id in entity_ids:

@@ -10,6 +10,7 @@ from prettytable import PrettyTable
 
 import util.dist as dist
 
+
 #### The following loading utilities are imported from
 #### https://github.com/BryanPlummer/flickr30k_entities/blob/68b3d6f12d1d710f96233f6bd2b6de799d6f4e5b/flickr30k_entities_utils.py
 # Changelog:
@@ -257,13 +258,13 @@ class RecallTracker:
 
 class Flickr30kEntitiesRecallEvaluator:
     def __init__(
-        self,
-        flickr_path: str,
-        subset: str = "test",
-        topk: Sequence[int] = (1, 5, 10, -1),
-        iou_thresh: float = 0.5,
-        merge_boxes: bool = False,
-        verbose: bool = True,
+            self,
+            flickr_path: str,
+            subset: str = "test",
+            topk: Sequence[int] = (1, 5, 10, -1),
+            iou_thresh: float = 0.5,
+            merge_boxes: bool = False,
+            verbose: bool = True,
     ):
 
         assert subset in ["train", "test", "val"], f"Wrong flickr subset {subset}"
@@ -393,12 +394,12 @@ class Flickr30kEntitiesRecallEvaluator:
 
 class FlickrEvaluator(object):
     def __init__(
-        self,
-        flickr_path,
-        subset,
-        top_k=(1, 5, 10, -1),
-        iou_thresh=0.5,
-        merge_boxes=False,
+            self,
+            flickr_path,
+            subset,
+            top_k=(1, 5, 10, -1),
+            iou_thresh=0.5,
+            merge_boxes=False,
     ):
         assert isinstance(top_k, (list, tuple))
 

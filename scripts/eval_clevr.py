@@ -142,12 +142,12 @@ class CLEVREvaluator:
 
 @torch.no_grad()
 def evaluate(
-    model,
-    data_loader,
-    evaluator_list,
-    device,
-    output_dir,
-    args,
+        model,
+        data_loader,
+        evaluator_list,
+        device,
+        output_dir,
+        args,
 ):
     model.eval()
 

@@ -26,11 +26,11 @@ def update_ema(model, model_ema, decay):
 
 
 def adjust_learning_rate(
-    optimizer,
-    epoch: int,
-    curr_step: int,
-    num_training_steps: int,
-    args,
+        optimizer,
+        epoch: int,
+        curr_step: int,
+        num_training_steps: int,
+        args,
 ):
     """Adjust the lr according to the schedule.
 

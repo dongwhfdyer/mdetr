@@ -53,8 +53,8 @@ def get_root_and_nouns(text: str, lazy=True) -> Tuple[str, str, List[Tuple[int, 
         return text, "", [(0, len(text))], [(0, len(text))]
 
     if (
-        len([c for c in root.children if c.tag_ in ["VB", "VBD", "VBG", "VBN", "VBP", "VBZ"] and c.dep_ == "compound"])
-        > 0
+            len([c for c in root.children if c.tag_ in ["VB", "VBD", "VBG", "VBN", "VBP", "VBZ"] and c.dep_ == "compound"])
+            > 0
     ):
         return text, "", [(0, len(text))], [(0, len(text))]
 

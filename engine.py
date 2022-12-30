@@ -23,18 +23,18 @@ from util.optim import adjust_learning_rate, update_ema
 
 
 def train_one_epoch(
-    model: torch.nn.Module,
-    criterion: Optional[torch.nn.Module],
-    contrastive_criterion: Optional[torch.nn.Module],
-    qa_criterion: Optional[torch.nn.Module],
-    weight_dict: Dict[str, float],
-    data_loader: Iterable,
-    optimizer: torch.optim.Optimizer,
-    device: torch.device,
-    epoch: int,
-    args,
-    max_norm: float = 0,
-    model_ema: Optional[torch.nn.Module] = None,
+        model: torch.nn.Module,
+        criterion: Optional[torch.nn.Module],
+        contrastive_criterion: Optional[torch.nn.Module],
+        qa_criterion: Optional[torch.nn.Module],
+        weight_dict: Dict[str, float],
+        data_loader: Iterable,
+        optimizer: torch.optim.Optimizer,
+        device: torch.device,
+        epoch: int,
+        args,
+        max_norm: float = 0,
+        model_ema: Optional[torch.nn.Module] = None,
 ):
     model.train()
     if criterion is not None:
@@ -124,16 +124,16 @@ def train_one_epoch(
 
 @torch.no_grad()
 def evaluate(
-    model: torch.nn.Module,
-    criterion: Optional[torch.nn.Module],
-    contrastive_criterion: Optional[torch.nn.Module],
-    qa_criterion: Optional[torch.nn.Module],
-    postprocessors: Dict[str, torch.nn.Module],
-    weight_dict: Dict[str, float],
-    data_loader,
-    evaluator_list,
-    device: torch.device,
-    args,
+        model: torch.nn.Module,
+        criterion: Optional[torch.nn.Module],
+        contrastive_criterion: Optional[torch.nn.Module],
+        qa_criterion: Optional[torch.nn.Module],
+        postprocessors: Dict[str, torch.nn.Module],
+        weight_dict: Dict[str, float],
+        data_loader,
+        evaluator_list,
+        device: torch.device,
+        args,
 ):
     model.eval()
     if criterion is not None:

@@ -225,10 +225,10 @@ class Item:
 
     def is_same(self, other):
         return (
-            self.color == other.color
-            and self.shape == other.shape
-            and self.size == other.size
-            and self.material == other.material
+                self.color == other.color
+                and self.shape == other.shape
+                and self.size == other.size
+                and self.material == other.material
         )
 
     def get_cat(self):
@@ -342,21 +342,21 @@ def find_node_id_in_template(program, idx, template):
     while ind_prog <= idx and ind_template < len(template["nodes"]):
         if ind_prog == idx:
             if not (
-                template["nodes"][ind_template]["type"] == "filter_count"
-                and program[ind_prog]["type"][: len("filter_")] == "filter_"
+                    template["nodes"][ind_template]["type"] == "filter_count"
+                    and program[ind_prog]["type"][: len("filter_")] == "filter_"
             ) and not (
-                template["nodes"][ind_template]["type"] in ["filter_unique", "relate_filter_count", "relate_filter"]
-                and program[ind_prog]["type"] == "filter_ordinal"
+                    template["nodes"][ind_template]["type"] in ["filter_unique", "relate_filter_count", "relate_filter"]
+                    and program[ind_prog]["type"] == "filter_ordinal"
             ):
                 assert is_same_fun(
                     program[ind_prog]["type"], template["nodes"][ind_template]["type"]
                 ), "Wrong function type"
             return ind_template
         if is_same_fun(program[ind_prog]["type"], template["nodes"][ind_template]["type"]) and (
-            (
-                not is_same_fun(program[ind_prog + 1]["type"], template["nodes"][ind_template]["type"])
-                or program[ind_prog]["type"] == "scene"
-            )
+                (
+                        not is_same_fun(program[ind_prog + 1]["type"], template["nodes"][ind_template]["type"])
+                        or program[ind_prog]["type"] == "scene"
+                )
         ):
             ind_template += 1
         ind_prog += 1
@@ -381,12 +381,12 @@ def find_tokens(refexp, template, node_id, backtrack=True, partial_match=False):
             assert pos != -1
             cur_tokens.append((pos, pos + len(function)))
         if (
-            (
-                function in ["filter", "relate", "relate_filter", "relate_filter_count"]
-                or function[: len("filter_")] == "filter_"
-            )
-            and cur_id != node_id
-            and function != "filter_unique"
+                (
+                        function in ["filter", "relate", "relate_filter", "relate_filter_count"]
+                        or function[: len("filter_")] == "filter_"
+                )
+                and cur_id != node_id
+                and function != "filter_unique"
         ):
             # "relate" filters object based on their physical position relative to another one (eg. "to the right of")
             # "filter" filters by attributes
@@ -395,10 +395,10 @@ def find_tokens(refexp, template, node_id, backtrack=True, partial_match=False):
             assert len(cur_tokens) == 1, "Error, the relate filter is expected to yield only one possibility"
             cur_tokens = cur_tokens[0]
         if (
-            is_root
-            or function[: len("same_")] == "same_"
-            or function == "intersect"
-            or function[: len("filter_")] == "filter_"
+                is_root
+                or function[: len("same_")] == "same_"
+                or function == "intersect"
+                or function[: len("filter_")] == "filter_"
         ) and (is_root or function != "filter_unique"):
             # If a node verifies this condition, we are interested in its ancestors.
             # We get a list of list for each ancestors, and we need to do the "cartesian concatenation" of all of them
@@ -429,9 +429,9 @@ def find_tokens(refexp, template, node_id, backtrack=True, partial_match=False):
     targets = template["nodes"][node_id]["side_inputs"]
 
     if (
-        template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
-        and backtrack
-        and not partial_match
+            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
+            and backtrack
+            and not partial_match
     ):
         tokens = backtrack_previous_nodes(node_id)
     else:
@@ -656,7 +656,7 @@ def parse_prog(scene, refexp, templates, verbose=False):
 
     # Find the tokens for the remaining objects
     node_id = (
-        len(template["nodes"]) - 1
+            len(template["nodes"]) - 1
     )  # find_node_id_in_template(refexp["program"], len(refexp["program"]) - 1, template)
     tokens = find_tokens(refexp, template, node_id)
     # print("Last node tokens:", tokens)
@@ -783,16 +783,16 @@ def convert_bounding_boxes(bboxes):
 
 
 def convert(
-    subset: str,
-    clevr_box_path: Optional[Path],
-    refclevr_path: Path,
-    scene_path: Path,
-    output_path: Path,
-    no_caption: bool,
-    medium: bool,
-    templates,
-    next_img_id: int = 0,
-    next_id: int = 0,
+        subset: str,
+        clevr_box_path: Optional[Path],
+        refclevr_path: Path,
+        scene_path: Path,
+        output_path: Path,
+        no_caption: bool,
+        medium: bool,
+        templates,
+        next_img_id: int = 0,
+        next_id: int = 0,
 ):
     """Do the heavy lifting on the given subset (eg 'train')"""
 

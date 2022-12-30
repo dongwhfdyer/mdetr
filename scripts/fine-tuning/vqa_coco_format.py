@@ -50,7 +50,6 @@ def parse_args():
 
 
 def split_val(dataset):
-
     image_ids = set([x["image_id"] for x in dataset])
     minival_image_ids = np.random.choice(list(image_ids), 2000, replace=False)
 
@@ -66,7 +65,6 @@ def split_val(dataset):
 
 
 def convert(split, data_path, output_path, coco_path):
-
     dataset = list(multimodal.datasets.VQA2(dir_data=data_path, min_ans_occ=9, split=split))
 
     print(f"Dumping {split}...")

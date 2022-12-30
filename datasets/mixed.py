@@ -34,13 +34,13 @@ class CustomCocoDetection(VisionDataset):
     """
 
     def __init__(
-        self,
-        root_coco: str,
-        root_vg: str,
-        annFile: str,
-        transform: Optional[Callable] = None,
-        target_transform: Optional[Callable] = None,
-        transforms: Optional[Callable] = None,
+            self,
+            root_coco: str,
+            root_vg: str,
+            annFile: str,
+            transform: Optional[Callable] = None,
+            target_transform: Optional[Callable] = None,
+            transforms: Optional[Callable] = None,
     ) -> None:
         super(CustomCocoDetection, self).__init__(root_coco, transforms, transform, target_transform)
         from pycocotools.coco import COCO

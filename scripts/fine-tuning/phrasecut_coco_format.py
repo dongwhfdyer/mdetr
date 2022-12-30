@@ -36,7 +36,6 @@ def parse_args():
 
 
 def convert(split, data_path, output_path, imid2data):
-
     with open(data_path / f"refer_{split}.json", "r") as f:
         data = json.load(f)
 

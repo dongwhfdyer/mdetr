@@ -16,6 +16,7 @@ import util.dist as dist
 from .coco_eval import merge
 from .lvis import LVIS
 
+
 #################################################################
 # From LVIS, with following changes:
 #     * fixed LVISEval constructor to accept empty dt

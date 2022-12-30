@@ -50,7 +50,7 @@ def collate_fn(do_round, batch):
         cur_count = 0
         for v in batch[1]:
             cur_pos = v["positive_map"]
-            batched_pos_map[cur_count : cur_count + len(cur_pos), : cur_pos.shape[1]] = cur_pos
+            batched_pos_map[cur_count: cur_count + len(cur_pos), : cur_pos.shape[1]] = cur_pos
             cur_count += len(cur_pos)
 
         assert cur_count == len(batched_pos_map)
@@ -66,7 +66,7 @@ def collate_fn(do_round, batch):
         cur_count = 0
         for v in batch[1]:
             cur_pos = v["positive_map_eval"]
-            batched_pos_map[cur_count : cur_count + len(cur_pos), : cur_pos.shape[1]] = cur_pos
+            batched_pos_map[cur_count: cur_count + len(cur_pos), : cur_pos.shape[1]] = cur_pos
             cur_count += len(cur_pos)
 
         assert cur_count == len(batched_pos_map)
@@ -143,7 +143,6 @@ def interpolate(input, size=None, scale_factor=None, mode="nearest", align_corne
 
     # empty batch dimension is now supported in pytorch
     return torch.nn.functional.interpolate(input, size, scale_factor, mode, align_corners)
-
 
 
 def targets_to(targets: List[Dict[str, Any]], device):

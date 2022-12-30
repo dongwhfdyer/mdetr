@@ -22,11 +22,11 @@ class Datapoint(NamedTuple):
 
 
 def convert2dataset_combined(
-    datapoint_list_coco: List[Datapoint],
-    datapoint_list_vg: List[Datapoint],
-    imgid2imginfo_coco,
-    imgid2imginfo_vg,
-    output_path,
+        datapoint_list_coco: List[Datapoint],
+        datapoint_list_vg: List[Datapoint],
+        imgid2imginfo_coco,
+        imgid2imginfo_vg,
+        output_path,
 ):
     """"""
     print(f"Dumping combined coco and vg images related all training examples...")

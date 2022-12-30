@@ -15,7 +15,6 @@ class PhrasecutDetection(ModulatedDetection):
 
 
 def build(image_set, args):
-
     img_dir = Path(args.vg_img_path)
     if image_set == "val":
         # We validate on the minival for efficiency

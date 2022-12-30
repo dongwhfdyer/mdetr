@@ -17,6 +17,7 @@ import torch
 from torchvision.ops.boxes import box_iou
 from tqdm import tqdm
 import sys
+
 PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -101,7 +102,7 @@ def rescale_boxes(old_datapoint: Datapoint, old_size: Tuple[int, int], new_size:
 
 
 def combine_dataset_datapoints(
-    dataset_dicts: Dict[str, List[Datapoint]], vg_imid2data: Dict[int, Dict], coco_imid2data: Dict[str, Dict], coco_path: str,
+        dataset_dicts: Dict[str, List[Datapoint]], vg_imid2data: Dict[int, Dict], coco_imid2data: Dict[str, Dict], coco_path: str,
 ) -> Tuple[Dict[str, List[Datapoint]], Dict[str, List[Datapoint]]]:
     """This functions accepts a dict from the 'dataset_name' to the list of datapoints we have for this dataset.
     It splits the data points based on whether we have a coco id or a vg id for the images.
@@ -320,7 +321,6 @@ def get_refexp_groups(im2datapoint: Dict[str, List[Datapoint]]) -> List[Datapoin
 
 
 def main(args):
-
     output_path = Path(args.out_path)
     os.makedirs(str(output_path), exist_ok=True)
 

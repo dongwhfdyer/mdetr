@@ -14,6 +14,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 import sys
+
 PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -60,7 +61,6 @@ def parse_args():
 
 
 def convert(split, data_path, sg_path, output_path, imid2data):
-
     with open(data_path / f"{split}_balanced_questions.json", "r") as f:
         data = json.load(f)
     with open(sg_path / f"{split}_sceneGraphs.json", "r") as f:
@@ -165,9 +165,9 @@ def convert(split, data_path, sg_path, output_path, imid2data):
                         if isinstance(text_tok_id, list) and len(text_tok_id) > 1:
                             beg = sum([len(x) for x in question.split()[: int(text_tok_id[0])]]) + int(text_tok_id[0])
                             end = (
-                                sum([len(x) for x in question.split()[: int(text_tok_id[1]) - 1]])
-                                + int(text_tok_id[1])
-                                - 1
+                                    sum([len(x) for x in question.split()[: int(text_tok_id[1]) - 1]])
+                                    + int(text_tok_id[1])
+                                    - 1
                             )
                             end = end + len(question.split()[int(text_tok_id[1]) - 1])
                         else:

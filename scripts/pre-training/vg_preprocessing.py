@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Dict, List, Tuple
 import sys
+
 PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -151,8 +152,8 @@ def deduplicate_regions(regions, iou_threshold=0.5):
                 for b1 in range(len(regions[r1]["cano_tokens"])):
                     for b2 in range(len(regions[r2]["cano_tokens"])):
                         if (len(regions[r1]["cano_tokens"][b1]) == 0 or len(regions[r2]["cano_tokens"][b2]) == 0) or (
-                            spanlist_intersect_spanlist(regions[r1]["cano_tokens"][b1], regions[r2]["cano_tokens"][b2])
-                            and ious[b1][b2] < iou_threshold
+                                spanlist_intersect_spanlist(regions[r1]["cano_tokens"][b1], regions[r2]["cano_tokens"][b2])
+                                and ious[b1][b2] < iou_threshold
                         ):
                             compatible = False
                             break
@@ -190,8 +191,8 @@ def deduplicate_regions(regions, iou_threshold=0.5):
                                 # This shouldn't happen. But if it does, we give up on the merging
                                 return regions
                                 assert idx == reg_ids[0], (
-                                    "TODO: if this triggers, it means another regions has token spans than aren't covered by the main region."
-                                    + "We need to create a new token span, which involve finding the span in the original sentencen of the main region. Don't forget to update the negative tokens"
+                                        "TODO: if this triggers, it means another regions has token spans than aren't covered by the main region."
+                                        + "We need to create a new token span, which involve finding the span in the original sentencen of the main region. Don't forget to update the negative tokens"
                                 )
 
                             bucket = len(orig_spans_buckets)
@@ -342,11 +343,10 @@ def _get_all_datapoints(output_path: Path, img_list, proc_id: int):
 def chunk_list(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
-        yield lst[i : i + n]
+        yield lst[i: i + n]
 
 
 def get_all_datapoints(dataset_path: Path, output_path: Path, nb_proc: int):
-
     print("loading region graphs....")
     with open(dataset_path / "region_graphs.json", "r") as f:
         VG_region_graph = json.load(f)

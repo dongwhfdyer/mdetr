@@ -23,13 +23,13 @@ from .subset import PhraseCutSubsets
 
 class RefVGLoader(object):
     def __init__(
-        self,
-        phrase_cut_path: str,
-        subsets: PhraseCutSubsets,
-        split=None,
-        allow_no_att=True,
-        allow_no_rel=True,
-        input_anno_only=False,
+            self,
+            phrase_cut_path: str,
+            subsets: PhraseCutSubsets,
+            split=None,
+            allow_no_att=True,
+            allow_no_rel=True,
+            input_anno_only=False,
     ):
         self.vg_loader = None
         self.subsets = subsets

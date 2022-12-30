@@ -34,7 +34,7 @@ class FrozenBatchNorm2d(torch.nn.Module):
         self.register_buffer("running_var", torch.ones(n))
 
     def _load_from_state_dict(
-        self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+            self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
     ):
         num_batches_tracked_key = prefix + "num_batches_tracked"
         if num_batches_tracked_key in state_dict:
@@ -146,7 +146,7 @@ class TimmBackbone(nn.Module):
             replace_bn(backbone)
         num_channels = backbone.feature_info.channels()[-1]
         self.body = backbone
-        self.num_channels =  num_channels
+        self.num_channels = num_channels
         self.interm = return_interm_layers
         self.main_layer = main_layer
 
@@ -183,7 +183,7 @@ def build_backbone(args):
     return_interm_layers = args.masks
     if args.backbone[: len("timm_")] == "timm_":
         backbone = TimmBackbone(
-            args.backbone[len("timm_") :],
+            args.backbone[len("timm_"):],
             return_interm_layers,
             main_layer=-1,
             group_norm=True,

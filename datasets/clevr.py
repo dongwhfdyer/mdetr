@@ -127,7 +127,6 @@ class ClevrQuestion(torch.utils.data.Dataset):
 
 
 def make_clevr_transforms(image_set, cautious=False):
-
     normalize = T.Compose([T.ToTensor(), T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     scales = [256, 288, 320, 352, 384]
@@ -163,7 +162,6 @@ def make_clevr_transforms(image_set, cautious=False):
 
 
 def build(dataset_file, image_set, args):
-
     if dataset_file == "clevr_question":
         if args.clevr_variant == "humans":
             assert args.no_detection, "CLEVR-Humans doesn't have boxes, please disable detection"

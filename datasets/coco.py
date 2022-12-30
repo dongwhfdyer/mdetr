@@ -103,7 +103,7 @@ def create_positive_map(tokenized, tokens_positive):
                 continue
 
             assert beg_pos is not None and end_pos is not None
-            positive_map[j, beg_pos : end_pos + 1].fill_(1)
+            positive_map[j, beg_pos: end_pos + 1].fill_(1)
     return positive_map / (positive_map.sum(-1)[:, None] + 1e-6)
 
 
@@ -202,7 +202,6 @@ class ConvertCocoPolysToMask(object):
 
 
 def make_coco_transforms(image_set, cautious):
-
     normalize = T.Compose([T.ToTensor(), T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     scales = [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800]

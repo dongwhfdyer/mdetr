@@ -71,7 +71,7 @@ def boxes_to_mask(boxes, w, h, xywh=True):
         boxes = xywh_to_xyxy(boxes)
     for box in boxes:
         x1, y1, x2, y2 = box
-        b_mask[int(y1) : int(y2), int(x1) : int(x2)] = 1
+        b_mask[int(y1): int(y2), int(x1): int(x2)] = 1
     return b_mask
 
 
@@ -91,7 +91,7 @@ def polygon_in_box(polygon, box, xywh=True):
             return False
         p_mask = polygons_to_mask([polygon], int(pb[0] + pb[2] + 1), int(pb[1] + pb[3] + 1))
         is_in = p_mask[point[0], point[1]]
-        almost_in = np.mean(p_mask.astype(float)[point[0] - 1 : point[0] + 1, point[1] - 1 : point[1] + 1])
+        almost_in = np.mean(p_mask.astype(float)[point[0] - 1: point[0] + 1, point[1] - 1: point[1] + 1])
         return max(is_in, almost_in)
 
     def points_in_line(p1, p2):

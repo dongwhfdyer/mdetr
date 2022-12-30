@@ -15,6 +15,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 import sys
+
 PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -68,7 +69,6 @@ def parse_args():
 
 
 def convert(split, data_path, sg_path, output_path, imid2data, type, coco_path):
-
     if split == "train" and type == "all":
         data = {}
         for i in tqdm(range(10)):
@@ -226,8 +226,8 @@ def convert(split, data_path, sg_path, output_path, imid2data, type, coco_path):
                 }
 
             if (
-                split not in ["testdev", "test", "challenge", "submission"]
-                and len(annotation["annotations"]["question"]) > 0
+                    split not in ["testdev", "test", "challenge", "submission"]
+                    and len(annotation["annotations"]["question"]) > 0
             ):
 
                 for text_tok_id, box_anno_id in annotation["annotations"]["question"].items():
@@ -241,9 +241,9 @@ def convert(split, data_path, sg_path, output_path, imid2data, type, coco_path):
                         if isinstance(text_tok_id, list) and len(text_tok_id) > 1:
                             beg = sum([len(x) for x in question.split()[: int(text_tok_id[0])]]) + int(text_tok_id[0])
                             end = (
-                                sum([len(x) for x in question.split()[: int(text_tok_id[1]) - 1]])
-                                + int(text_tok_id[1])
-                                - 1
+                                    sum([len(x) for x in question.split()[: int(text_tok_id[1]) - 1]])
+                                    + int(text_tok_id[1])
+                                    - 1
                             )
                             end = end + len(question.split()[int(text_tok_id[1]) - 1])
                         else:

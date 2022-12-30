@@ -313,7 +313,7 @@ def main(args):
     model.to(device)
 
     assert (
-        criterion is not None or qa_criterion is not None
+            criterion is not None or qa_criterion is not None
     ), "Error: should train either detection or question answering (or both)"
 
     # Get a copy of the model for exponential moving averaged version of the model

@@ -12,6 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List
 import sys
+
 PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -49,7 +50,7 @@ def convert(dataset_path: Path, split, output_path, coco_path):
 
     safe_ids = set()
     with open(
-        "combined_ref_exp_safe_train_ids.txt", "r"
+            "combined_ref_exp_safe_train_ids.txt", "r"
     ) as f:
         for line in f:
             safe_ids.add(int(line.strip()))
