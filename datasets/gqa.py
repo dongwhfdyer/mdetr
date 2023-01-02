@@ -104,7 +104,7 @@ def build(image_set, args):
 
     tokenizer = RobertaTokenizerFast.from_pretrained(args.text_encoder_type)
 
-    if args.do_qa:
+    if args.do_qa: # False
         assert args.gqa_split_type is not None
 
         if image_set == "train":

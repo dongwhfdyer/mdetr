@@ -86,7 +86,7 @@ class Transformer(nn.Module):
             img_memory=None,
             text_attention_mask=None,
     ):
-        if encode_and_save:
+        if encode_and_save:  # IT is frist round.
             # flatten NxCxHxW to HWxNxC
             bs, c, h, w = src.shape
             src = src.flatten(2).permute(2, 0, 1)
@@ -95,7 +95,7 @@ class Transformer(nn.Module):
             query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1)
             mask = mask.flatten(1)
 
-            if self.CLS is not None:
+            if self.CLS is not None:  # False
                 # We add a CLS token to the image, to be used for contrastive loss
 
                 CLS = self.CLS.weight.view(1, 1, -1).repeat(1, bs, 1)
@@ -109,58 +109,57 @@ class Transformer(nn.Module):
                 cls_pad = torch.zeros(bs, 1).bool().to(device)
                 mask = torch.cat((cls_pad, mask), dim=1)
 
-            if self.pass_pos_and_query:
+            if self.pass_pos_and_query:  # True
                 tgt = torch.zeros_like(query_embed)
-            else:
+            else:  # False
                 src, tgt, query_embed, pos_embed = src + 0.1 * pos_embed, query_embed, None, None
 
             device = src.device
-            if isinstance(text[0], str):
-                # Encode the text
+            if isinstance(text[0], str):  # True
+                # for example, tokenized: {'input_ids': tensor([    0,  7109,  2473,     9,   251,  2489,  7651,  2335,     4,     2, 17927], device='cuda:0'), 'attention_mask': tensor([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], device='cuda:0')}
                 tokenized = self.tokenizer.batch_encode_plus(text, padding="longest", return_tensors="pt").to(device)
+                # encoded_text has got attributes: attentions, cross_attentions, hidden_states, last_hidden_state, past_key_values, pooler_output
+                # for example, attentions, cross_attentions, hidden_states, past_key_values, last_hidden_state: (bs, num_tokens, text_enc_dim), pooler_output: (bs, text_enc_dim). num_tokens is a variable. It's different across batches.
                 encoded_text = self.text_encoder(**tokenized)
-
                 # Transpose memory because pytorch's attention expects sequence first
                 text_memory = encoded_text.last_hidden_state.transpose(0, 1)
                 # Invert attention mask that we get from huggingface because its the opposite in pytorch transformer
-                text_attention_mask = tokenized.attention_mask.ne(1).bool()
-
+                text_attention_mask = tokenized.attention_mask.ne(1).bool()  # Make the original 1 to False. Set the flag for the empty place.
                 # Resize the encoder hidden states to be of the same d_model as the decoder
                 text_memory_resized = self.resizer(text_memory)
-            else:
+            else:  # False
                 # The text is already encoded, use as is.
                 text_attention_mask, text_memory_resized, tokenized = text
 
-            # Concat on the sequence dimension
+            # Concat on the sequence dimension. src is the sequence from image.
+            # original src: (h*w, bs, C) original  text_memory_resized: (num_tokens, bs, text_enc_dim)
+            # for example: src: (540, 2, 256)    text_memory_resized: (12, 2, 256) # the resultant src: (562, 2, 256)
             src = torch.cat([src, text_memory_resized], dim=0)
-            # For mask, sequence dimension is second
+            # For mask, sequence dimension is second. for example, mask: (bs, 562)
             mask = torch.cat([mask, text_attention_mask], dim=1)
-            # Pad the pos_embed with 0 so that the addition will be a no-op for the text tokens
+            # Pad the pos_embed with 0 so that the addition will be a no-op for the text tokens. We leave the text tokens' pos alone.
             pos_embed = torch.cat([pos_embed, torch.zeros_like(text_memory_resized)], dim=0)
-
-            img_memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
-
-            text_memory = img_memory[-len(text_memory_resized):]
-
+            img_memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)  # img_memory: (562, 2, 256)
+            text_memory = img_memory[-len(text_memory_resized):]  # extract the text memory: (12, 2, 256) from the img_memory
             assert img_memory.shape[1] == text_memory.shape[1] == tgt.shape[1]
             memory_cache = {
-                "text_memory_resized": text_memory_resized,
-                "text_memory": text_memory,
-                "img_memory": img_memory,
-                "text_pooled_op": encoded_text.pooler_output if self.CLS is not None else None,
-                "img_pooled_op": img_memory[0] if self.CLS is not None else None,  # Return the CLS token
-                "mask": mask,
-                "text_attention_mask": text_attention_mask,
-                "pos_embed": pos_embed,
-                "query_embed": query_embed,
+                "text_memory_resized": text_memory_resized,  # (text_num_tokens, bs, text_enc_dim)
+                "text_memory": text_memory,  # (text_num_tokens, bs, enc_dim)
+                "img_memory": img_memory, # (all_tokens, 2, 256)
+                "text_pooled_op": encoded_text.pooler_output if self.CLS is not None else None, # None
+                "img_pooled_op": img_memory[0] if self.CLS is not None else None,  # None
+                "mask": mask, # (bs, all_tokens)
+                "text_attention_mask": text_attention_mask, # (bs, text_num_tokens)
+                "pos_embed": pos_embed, # (all_tokens, bs, enc_dim)
+                "query_embed": query_embed, # (bs, bs, enc_dim)
+                # {'input_ids': tensor([[    0,  7109,  2473,     9,   251,  2489,  7651,  2335,     4,     2, 17927], [    0,  7109,  2473,     9,   251,  2489,  7651,  2335,     4,     2, 17927]], device='cuda:0'), 'attention_mask': tensor([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], device='cuda:0')}
                 "tokenized": tokenized,
             }
             return memory_cache
-
-        else:
-            if self.pass_pos_and_query:
+        else:  # It is the second time to call the forward function. The memory_cache is not None.
+            if self.pass_pos_and_query: # True
                 tgt = torch.zeros_like(query_embed)
-            else:
+            else: # False
                 src, tgt, query_embed, pos_embed = src + 0.1 * pos_embed, query_embed, None, None
 
             assert img_memory.shape[1] == text_memory.shape[1] == tgt.shape[1]
@@ -172,7 +171,7 @@ class Transformer(nn.Module):
                 memory_key_padding_mask=mask,
                 text_memory_key_padding_mask=text_attention_mask,
                 pos=pos_embed,
-                query_pos=query_embed,
+                query_pos=query_embed, # Kuhn: don't know what it is.
             )
             return hs.transpose(1, 2)
 
@@ -441,7 +440,7 @@ class TransformerDecoderLayer(nn.Module):
             pos: Optional[Tensor] = None,
             query_pos: Optional[Tensor] = None,
     ):
-        if self.normalize_before:
+        if self.normalize_before: # False
             return self.forward_pre(
                 tgt, memory, tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask, pos, query_pos
             )

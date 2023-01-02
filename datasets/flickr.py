@@ -18,14 +18,14 @@ def build(image_set, args):
 
     if args.GT_type == "merged":
         identifier = "mergedGT"
-    elif args.GT_type == "separate":
+    elif args.GT_type == "separate": # True
         identifier = "separateGT"
     else:
         assert False, f"{args.GT_type} is not a valid type of annotation for flickr"
 
     if args.test:
         ann_file = Path(args.flickr_ann_path) / f"final_flickr_{identifier}_test.json"
-    else:
+    else: # True
         ann_file = Path(args.flickr_ann_path) / f"final_flickr_{identifier}_{image_set}.json"
 
     tokenizer = RobertaTokenizerFast.from_pretrained(args.text_encoder_type)

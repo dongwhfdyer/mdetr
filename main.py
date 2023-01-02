@@ -278,6 +278,8 @@ def get_args_parser():
 
 def main(args):
     # Init distributed mode
+    # set the env
+    # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
     dist.init_distributed_mode(args)
 
     # Update dataset specific configs
@@ -306,7 +308,7 @@ def main(args):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
-    torch.set_deterministic(True)
+    # torch.set_deterministic(True)
 
     # Build the model
     model, criterion, contrastive_criterion, qa_criterion, weight_dict = build_model(args)
@@ -351,17 +353,17 @@ def main(args):
         raise RuntimeError(f"Unsupported optimizer {args.optimizer}")
 
     # Train dataset
-    if len(args.combine_datasets) == 0 and not args.eval:
+    if len(args.combine_datasets) == 0 and not args.eval:  # False
         raise RuntimeError("Please provide at least one training dataset")
 
     dataset_train, sampler_train, data_loader_train = None, None, None
-    if not args.eval:
+    if not args.eval:  # True
         dataset_train = ConcatDataset(
-            [build_dataset(name, image_set="train", args=args) for name in args.combine_datasets]
+            [build_dataset(name, image_set="train", args=args) for name in args.combine_datasets]  # combine_datasets = ['flickr30k', 'mixed]
         )
 
         # To handle very big datasets, we chunk it into smaller parts.
-        if args.epoch_chunks > 0:
+        if args.epoch_chunks > 0:  # False
             print(
                 "Splitting the training set into {args.epoch_chunks} of size approximately "
                 f" {len(dataset_train) // args.epoch_chunks}"
@@ -387,7 +389,7 @@ def main(args):
                 )
                 for ds, batch_sampler_train in zip(datasets, batch_samplers_train)
             ]
-        else:
+        else:  # True
             if args.distributed:
                 sampler_train = DistributedSampler(dataset_train)
             else:
@@ -408,7 +410,7 @@ def main(args):
     Val_all = namedtuple(typename="val_data", field_names=["dataset_name", "dataloader", "base_ds", "evaluator_list"])
 
     val_tuples = []
-    for dset_name in args.combine_datasets_val:
+    for dset_name in args.combine_datasets_val:  # ['gqa', 'flickr30k', 'refexp']
         dset = build_dataset(dset_name, image_set="val", args=args)
         sampler = (
             DistributedSampler(dset, shuffle=False) if args.distributed else torch.utils.data.SequentialSampler(dset)
@@ -424,7 +426,7 @@ def main(args):
         base_ds = get_coco_api_from_dataset(dset)
         val_tuples.append(Val_all(dataset_name=dset_name, dataloader=dataloader, base_ds=base_ds, evaluator_list=None))
 
-    if args.frozen_weights is not None:
+    if args.frozen_weights is not None: # False
         if args.resume.startswith("https"):
             checkpoint = torch.hub.load_state_dict_from_url(args.resume, map_location="cpu", check_hash=True)
         else:
@@ -439,7 +441,7 @@ def main(args):
 
     # Used for loading weights from another model and starting a training from scratch. Especially useful if
     # loading into a model with different functionality.
-    if args.load:
+    if args.load: # False
         print("loading from", args.load)
         checkpoint = torch.load(args.load, map_location="cpu")
         if "model_ema" in checkpoint:
@@ -451,7 +453,7 @@ def main(args):
             model_ema = deepcopy(model_without_ddp)
 
     # Used for resuming training from the checkpoint of a model. Used when training times-out or is pre-empted.
-    if args.resume:
+    if args.resume: # False
         if args.resume.startswith("https"):
             checkpoint = torch.hub.load_state_dict_from_url(args.resume, map_location="cpu", check_hash=True)
         else:
@@ -535,7 +537,7 @@ def main(args):
     start_time = time.time()
     best_metric = 0.0
     for epoch in range(args.start_epoch, args.epochs):
-        if args.epoch_chunks > 0:
+        if args.epoch_chunks > 0: # False
             sampler_train = samplers_train[epoch % len(samplers_train)]
             data_loader_train = data_loaders_train[epoch % len(data_loaders_train)]
             print(f"Starting epoch {epoch // len(data_loaders_train)}, sub_epoch {epoch % len(data_loaders_train)}")
@@ -574,7 +576,7 @@ def main(args):
                     checkpoint_path,
                 )
 
-        if epoch % args.eval_skip == 0:
+        if epoch % args.eval_skip == 0: # eval_skip = 1
             test_stats = {}
             test_model = model_ema if model_ema is not None else model
             for i, item in enumerate(val_tuples):
@@ -641,3 +643,4 @@ if __name__ == "__main__":
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     main(args)
+    # torch.autograd.set_detect_anomaly(True)

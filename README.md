@@ -1,3 +1,28 @@
+# kuhn notes
+
+RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation: [torch.cuda.LongTensor [2, 14]] is at version 3; expected version 2 instead. Hint: enable anomaly detection to find the operation that failed to compute its gradient, with torch.autograd.set_detect_anomaly(True)
+
+装了torch1.10 ，环境都放在`env.yml`文件中。解决了
+
+
+
+```RuntimeError: CUDA error: CUBLAS_STATUS_INVALID_VALUE when calling cublasSgemm( handle, opa, opb, m, n, k, &alpha, a, lda, b, ldb, &beta, c, ldc```
+
+pytorch、cuda和python版本不匹配的问题
+
+
+
+### packaging.version.InvalidVersion: Invalid version: '0.10.1,<0.11'
+
+重新安装transformers
+
+
+
+RuntimeError: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you ha and fine-tuning on tasks requiring fine-grainedve CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
+python-BaseException
+
+
+
 **MDETR**: Modulated Detection for End-to-End Multi-Modal Understanding
 ========
 

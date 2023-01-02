@@ -124,8 +124,11 @@ class MDETR(nn.Module):
         if not isinstance(samples, NestedTensor):
             samples = NestedTensor.from_tensor_list(samples)
 
-        if encode_and_save:
+        if encode_and_save: # First round of forward pass
             assert memory_cache is None
+            # samples is a NestedTensor. samples.tensor: [bs, 3, h, w], samples.mask: [bs, h, w]
+            # features: [bs, 256, h/32, w/32]
+            # mask: [bs, h/32, w/32]
             features, pos = self.backbone(samples)
             src, mask = features[-1].decompose()
             query_embed = self.query_embed.weight
@@ -149,9 +152,9 @@ class MDETR(nn.Module):
 
             return memory_cache
 
-        else:
+        else: # Second round of forward pass
             assert memory_cache is not None
-            hs = self.transformer(
+            hs = self.transformer(         # transformer: (batch_size, d_model, featH, featW) -> [layerNum, bs, num_queries, d_model]
                 mask=memory_cache["mask"],
                 query_embed=memory_cache["query_embed"],
                 pos_embed=memory_cache["pos_embed"],
@@ -161,7 +164,7 @@ class MDETR(nn.Module):
                 text_attention_mask=memory_cache["text_attention_mask"],
             )
             out = {}
-            if self.qa_dataset is not None:
+            if self.qa_dataset is not None: # False
                 if self.split_qa_heads:
                     if self.qa_dataset == "gqa":
                         answer_embeds = hs[0, :, -6:]
@@ -187,8 +190,8 @@ class MDETR(nn.Module):
                     hs = hs[:, :, :-1]
                     out["pred_answer"] = self.answer_head(answer_embeds)
 
-            outputs_class = self.class_embed(hs)
-            outputs_coord = self.bbox_embed(hs).sigmoid()
+            outputs_class = self.class_embed(hs) # (laynum, bs, num_queries, d_model) -> (laynum, bs, num_queries, num_classes)
+            outputs_coord = self.bbox_embed(hs).sigmoid() # (laynum, bs, num_queries, d_model) -> (laynum, bs, num_queries, 4)
             out.update(
                 {
                     "pred_logits": outputs_class[-1],
@@ -200,9 +203,9 @@ class MDETR(nn.Module):
                 outputs_isfinal = self.isfinal_embed(hs)
                 out["pred_isfinal"] = outputs_isfinal[-1]
             proj_queries, proj_tokens = None, None
-            if self.contrastive_align_loss:
-                proj_queries = F.normalize(self.contrastive_align_projection_image(hs), p=2, dim=-1)
-                proj_tokens = F.normalize(
+            if self.contrastive_align_loss: # True
+                proj_queries = F.normalize(self.contrastive_align_projection_image(hs), p=2, dim=-1) # (laynum, bs, num_queries, contrastive_hdim)
+                proj_tokens = F.normalize( # (bs, text_token_num, contrastive_hdim)
                     self.contrastive_align_projection_text(memory_cache["text_memory"]).transpose(0, 1), p=2, dim=-1
                 )
                 out.update(
@@ -212,8 +215,8 @@ class MDETR(nn.Module):
                         "tokenized": memory_cache["tokenized"],
                     }
                 )
-            if self.aux_loss:
-                if self.contrastive_align_loss:
+            if self.aux_loss: # True
+                if self.contrastive_align_loss: # True
                     assert proj_tokens is not None and proj_queries is not None
                     out["aux_outputs"] = [
                         {
@@ -225,7 +228,7 @@ class MDETR(nn.Module):
                         }
                         for a, b, c in zip(outputs_class[:-1], outputs_coord[:-1], proj_queries[:-1])
                     ]
-                else:
+                else: # False
                     out["aux_outputs"] = [
                         {
                             "pred_logits": a,
@@ -233,7 +236,7 @@ class MDETR(nn.Module):
                         }
                         for a, b in zip(outputs_class[:-1], outputs_coord[:-1])
                     ]
-                if outputs_isfinal is not None:
+                if outputs_isfinal is not None: # False
                     assert len(outputs_isfinal[:-1]) == len(out["aux_outputs"])
                     for i in range(len(outputs_isfinal[:-1])):
                         out["aux_outputs"][i]["pred_isfinal"] = outputs_isfinal[i]
