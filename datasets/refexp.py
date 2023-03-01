@@ -100,7 +100,7 @@ def build(image_set, args):
             ann_file = Path(args.refexp_ann_path) / f"finetune_{refexp_dataset_name}_{test_set}.json"
         else:
             ann_file = Path(args.refexp_ann_path) / f"finetune_{refexp_dataset_name}_{image_set}.json"
-    elif refexp_dataset_name in ["all"]: # True
+    elif refexp_dataset_name in ["all"]:
         ann_file = Path(args.refexp_ann_path) / f"final_refexp_{image_set}.json"
     else:
         assert False, f"{refexp_dataset_name} not a valid datasset name for refexp"

@@ -104,7 +104,7 @@ def build(image_set, args):
 
     tokenizer = RobertaTokenizerFast.from_pretrained(args.text_encoder_type)
 
-    if args.do_qa: # False
+    if args.do_qa:
         assert args.gqa_split_type is not None
 
         if image_set == "train":
@@ -156,9 +156,11 @@ def build(image_set, args):
     else:
         # Only used for val during the pre-training phase
         ann_file = Path(args.gqa_ann_path) / f"final_gqa_{image_set}.json"
+        retrived_caption_file = Path(args.flickr_ann_path) / f"retrived_captions_flickr_100.json"
         dataset = GQADetection(
             img_dir,
             ann_file,
+            retrived_caption_file,
             transforms=make_coco_transforms(image_set, cautious=True),
             return_masks=args.masks,
             return_tokens=True,

@@ -64,12 +64,13 @@ def get_args_parser():
         default="",
     )
     parser.add_argument("--modulated_lvis_ann_path", type=str, default="")
+    parser.add_argument("--local_rank", type=str, default="")
 
     # Training hyper-parameters
     parser.add_argument("--lr", default=1e-4, type=float)
     parser.add_argument("--lr_backbone", default=1e-5, type=float)
     parser.add_argument("--text_encoder_lr", default=5e-5, type=float)
-    parser.add_argument("--batch_size", default=2, type=int)
+    parser.add_argument("--batch_size", default=4, type=int)
     parser.add_argument("--weight_decay", default=1e-4, type=float)
     parser.add_argument("--epochs", default=40, type=int)
     parser.add_argument("--lr_drop", default=35, type=int)
@@ -83,7 +84,7 @@ def get_args_parser():
     parser.add_argument("--clip_max_norm", default=0.1, type=float, help="gradient clipping max norm")
     parser.add_argument(
         "--eval_skip",
-        default=1,
+        default=0,
         type=int,
         help='do evaluation every "eval_skip" frames',
     )
@@ -261,25 +262,24 @@ def get_args_parser():
 
     parser.add_argument("--test", action="store_true", help="Whether to run evaluation on val or test set")
     parser.add_argument("--test_type", type=str, default="test", choices=("testA", "testB", "test"))
-    parser.add_argument("--output-dir", default="", help="path where to save, empty for no saving")
+    parser.add_argument("--output-dir", default="/home/pcl/nvidia-code/mdetr-main/output",
+                        help="path where to save, empty for no saving")
     parser.add_argument("--device", default="cuda", help="device to use for training / testing")
     parser.add_argument("--seed", default=42, type=int)
     parser.add_argument("--resume", default="", help="resume from checkpoint")
     parser.add_argument("--load", default="", help="resume from checkpoint")
     parser.add_argument("--start-epoch", default=0, type=int, metavar="N", help="start epoch")
     parser.add_argument("--eval", action="store_true", help="Only run evaluation")
-    parser.add_argument("--num_workers", default=5, type=int)
+    parser.add_argument("--num_workers", default=0, type=int)
 
     # Distributed training parameters
-    parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
+    parser.add_argument("--world-size", default=8, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", help="url used to set up distributed training")
     return parser
 
 
 def main(args):
     # Init distributed mode
-    # set the env
-    # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
     dist.init_distributed_mode(args)
 
     # Update dataset specific configs
@@ -353,17 +353,17 @@ def main(args):
         raise RuntimeError(f"Unsupported optimizer {args.optimizer}")
 
     # Train dataset
-    if len(args.combine_datasets) == 0 and not args.eval:  # False
+    if len(args.combine_datasets) == 0 and not args.eval:
         raise RuntimeError("Please provide at least one training dataset")
 
     dataset_train, sampler_train, data_loader_train = None, None, None
-    if not args.eval:  # True
+    if not args.eval:
         dataset_train = ConcatDataset(
-            [build_dataset(name, image_set="train", args=args) for name in args.combine_datasets]  # combine_datasets = ['flickr30k', 'mixed]
+            [build_dataset(name, image_set="train", args=args) for name in args.combine_datasets]
         )
 
         # To handle very big datasets, we chunk it into smaller parts.
-        if args.epoch_chunks > 0:  # False
+        if args.epoch_chunks > 0:
             print(
                 "Splitting the training set into {args.epoch_chunks} of size approximately "
                 f" {len(dataset_train) // args.epoch_chunks}"
@@ -389,7 +389,7 @@ def main(args):
                 )
                 for ds, batch_sampler_train in zip(datasets, batch_samplers_train)
             ]
-        else:  # True
+        else:
             if args.distributed:
                 sampler_train = DistributedSampler(dataset_train)
             else:
@@ -410,7 +410,7 @@ def main(args):
     Val_all = namedtuple(typename="val_data", field_names=["dataset_name", "dataloader", "base_ds", "evaluator_list"])
 
     val_tuples = []
-    for dset_name in args.combine_datasets_val:  # ['gqa', 'flickr30k', 'refexp']
+    for dset_name in args.combine_datasets_val:
         dset = build_dataset(dset_name, image_set="val", args=args)
         sampler = (
             DistributedSampler(dset, shuffle=False) if args.distributed else torch.utils.data.SequentialSampler(dset)
@@ -426,7 +426,7 @@ def main(args):
         base_ds = get_coco_api_from_dataset(dset)
         val_tuples.append(Val_all(dataset_name=dset_name, dataloader=dataloader, base_ds=base_ds, evaluator_list=None))
 
-    if args.frozen_weights is not None: # False
+    if args.frozen_weights is not None:
         if args.resume.startswith("https"):
             checkpoint = torch.hub.load_state_dict_from_url(args.resume, map_location="cpu", check_hash=True)
         else:
@@ -441,7 +441,7 @@ def main(args):
 
     # Used for loading weights from another model and starting a training from scratch. Especially useful if
     # loading into a model with different functionality.
-    if args.load: # False
+    if args.load:
         print("loading from", args.load)
         checkpoint = torch.load(args.load, map_location="cpu")
         if "model_ema" in checkpoint:
@@ -453,7 +453,7 @@ def main(args):
             model_ema = deepcopy(model_without_ddp)
 
     # Used for resuming training from the checkpoint of a model. Used when training times-out or is pre-empted.
-    if args.resume: # False
+    if args.resume:
         if args.resume.startswith("https"):
             checkpoint = torch.hub.load_state_dict_from_url(args.resume, map_location="cpu", check_hash=True)
         else:
@@ -537,7 +537,7 @@ def main(args):
     start_time = time.time()
     best_metric = 0.0
     for epoch in range(args.start_epoch, args.epochs):
-        if args.epoch_chunks > 0: # False
+        if args.epoch_chunks > 0:
             sampler_train = samplers_train[epoch % len(samplers_train)]
             data_loader_train = data_loaders_train[epoch % len(data_loaders_train)]
             print(f"Starting epoch {epoch // len(data_loaders_train)}, sub_epoch {epoch % len(data_loaders_train)}")
@@ -576,7 +576,7 @@ def main(args):
                     checkpoint_path,
                 )
 
-        if epoch % args.eval_skip == 0: # eval_skip = 1
+        if epoch % args.eval_skip == 0:
             test_stats = {}
             test_model = model_ema if model_ema is not None else model
             for i, item in enumerate(val_tuples):
@@ -643,4 +643,3 @@ if __name__ == "__main__":
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     main(args)
-    # torch.autograd.set_detect_anomaly(True)

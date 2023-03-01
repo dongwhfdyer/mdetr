@@ -24,8 +24,8 @@ def parse_args():
     parser = argparse.ArgumentParser("Submitit detection", parents=[detection_parser])
 
     parser.add_argument("--partition", default=None, type=str, help="Partition where to submit")
-    parser.add_argument("--ngpus", default=8, type=int, help="Number of gpus to request on each node")
-    parser.add_argument("--nodes", default=4, type=int, help="Number of nodes to request")
+    parser.add_argument("--ngpus", default=3, type=int, help="Number of gpus to request on each node")
+    parser.add_argument("--nodes", default=1, type=int, help="Number of nodes to request")
     parser.add_argument("--timeout", default=4300, type=int, help="Duration of the job")
     parser.add_argument("--job_dir", default="", type=str, help="Job dir. Leave empty for automatic.")
     parser.add_argument("--mail", default="", type=str, help="Email this user when the job finishes if specified")
@@ -34,8 +34,8 @@ def parse_args():
 
 def get_shared_folder(args) -> Path:
     user = os.getenv("USER")
-    if Path("/checkpoint/").is_dir():
-        p = Path(f"/checkpoint/{user}/experiments")
+    if Path("/home/songzh/lihd/mdetr/checkpoint/").is_dir():
+        p = Path(f"/home/songzh/lihd/mdetr/checkpoint/{user}/experiments")
         p.mkdir(exist_ok=True)
         return p
     raise RuntimeError("No shared folder available")

@@ -429,7 +429,8 @@ def find_tokens(refexp, template, node_id, backtrack=True, partial_match=False):
     targets = template["nodes"][node_id]["side_inputs"]
 
     if (
-            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
+            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist",
+                                                       "relate_filter_unique"]
             and backtrack
             and not partial_match
     ):

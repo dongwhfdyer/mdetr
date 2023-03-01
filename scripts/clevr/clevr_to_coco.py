@@ -387,7 +387,8 @@ def find_tokens(question, template: Dict, node_id, backtrack=True) -> List[List[
     targets = template["nodes"][node_id]["side_inputs"]
 
     if (
-            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist", "relate_filter_unique"]
+            template["nodes"][node_id]["type"] not in ["relate_filter_count", "relate_filter_exist",
+                                                       "relate_filter_unique"]
             and backtrack
     ):
         tokens = backtrack_previous_nodes(node_id)

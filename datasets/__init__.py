@@ -26,7 +26,7 @@ def get_coco_api_from_dataset(dataset):
             dataset = dataset.dataset
     if isinstance(dataset, LvisDetectionBase):
         return dataset.lvis
-    if isinstance(dataset, (torchvision.datasets.CocoDetection, CustomCocoDetection)): # True
+    if isinstance(dataset, (torchvision.datasets.CocoDetection, CustomCocoDetection)):
         return dataset.coco
 
 

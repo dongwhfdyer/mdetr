@@ -1,14 +1,14 @@
 {
-    "combine_datasets": ["flickr", "mixed"],
-    "combine_datasets_val": ["gqa", "flickr", "refexp"],
-    "coco_path": "data/coco",
-    "vg_img_path": "data/gqa",
-    "flickr_img_path": "data/flickr30k",
-    "refexp_ann_path": "data/mdetr_annotations",
-    "flickr_ann_path": "data/mdetr_annotations",
-    "gqa_ann_path": "data/mdetr_annotations",
+    "combine_datasets": ["flickr","mixed"],
+    "combine_datasets_val": ["flickr"],
+    "coco_path": "/home/pcl/nvidia-code/data/coco/",
+    "vg_img_path": "/home/pcl/nvidia-code/data/images",
+    "flickr_img_path": "/home/pcl/nvidia-code/data/",
+    "refexp_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
+    "flickr_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
+    "gqa_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
     "refexp_dataset_name": "all",
     "GT_type": "separate",
-    "flickr_dataset_path": "data/flickr30k"
+    "flickr_dataset_path": ""
 }
 

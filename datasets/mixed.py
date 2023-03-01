@@ -4,6 +4,7 @@ COCO dataset which returns image_id for evaluation.
 
 Mostly copy-paste from https://github.com/pytorch/vision/blob/13b35ff/references/detection/coco_utils.py
 """
+import json
 import os
 import os.path
 from pathlib import Path
@@ -45,7 +46,12 @@ class CustomCocoDetection(VisionDataset):
         super(CustomCocoDetection, self).__init__(root_coco, transforms, transform, target_transform)
         from pycocotools.coco import COCO
 
-        self.coco = COCO(annFile)
+        with open(annFile[1], 'r') as f1:
+            self.retrive_caption = json.loads(f1.read())
+        f1.close()
+        self.coco = COCO(annFile[0])
+        # with open(annFile[2], 'r') as f2:
+        #     self.retrive_vg_caption = json.loads(f2.read())
         self.ids = list(sorted(self.coco.imgs.keys()))
         self.root_coco = root_coco
         self.root_vg = root_vg
@@ -68,6 +74,9 @@ class CustomCocoDetection(VisionDataset):
         dataset = img_info["data_source"]
 
         cur_root = self.root_coco if dataset == "coco" else self.root_vg
+        # retrived_caption = self.retrive_caption[path[0:-4]]
+        target.append(self.retrive_caption[path[0:-4]])
+        # target['retrive_caption'] = self.retrive_caption[path[0:-4]] if dataset == "coco" else self.retrive_vg_caption[path[0:-4]]
         img = Image.open(os.path.join(cur_root, path)).convert("RGB")
         if self.transforms is not None:
             img, target = self.transforms(img, target)
@@ -87,11 +96,14 @@ class MixedDetection(CustomCocoDetection):
         self.prepare = ConvertCocoPolysToMask(return_masks, return_tokens, tokenizer=tokenizer)
 
     def __getitem__(self, idx):
-        img, target = super(MixedDetection, self).__getitem__(idx)
+        img, target_original = super(MixedDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
         caption = self.coco.loadImgs(image_id)[0]["caption"]
-        target = {"image_id": image_id, "annotations": target, "caption": caption}
+        # target["retrived_caption"] = target_original[-1]
+        target = {"image_id": image_id, "annotations": target_original[:-1], "caption": caption}
         img, target = self.prepare(img, target)
+        target["retrived_caption"] = target_original[-1]
+
         if self._transforms is not None:
             img, target = self._transforms(img, target)
         return img, target
@@ -103,7 +115,8 @@ def build(image_set, args):
     assert vg_img_dir.exists(), f"provided VG img path {vg_img_dir} does not exist"
     assert coco_img_dir.exists(), f"provided coco img path {coco_img_dir} does not exist"
 
-    ann_file = Path(args.gqa_ann_path) / f"final_mixed_{image_set}.json"
+    ann_file = [Path(args.gqa_ann_path) / f"final_mixed_{image_set}.json",
+                Path(args.gqa_ann_path) / f"image_caption_pairs_all.json"]
 
     tokenizer = RobertaTokenizerFast.from_pretrained(args.text_encoder_type)
     dataset = MixedDetection(

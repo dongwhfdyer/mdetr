@@ -196,7 +196,8 @@ class PostProcessSegm(nn.Module):
         max_orig_h, max_orig_w = orig_target_sizes.max(0)[0].tolist()
         if min_h == max_h and min_w == max_w and min_orig_h == max_orig_h and min_orig_w == max_orig_w:
             outputs_masks = (
-                    F.interpolate(outputs_masks, size=(min_orig_h, min_orig_w), mode="bilinear").sigmoid() > self.threshold
+                    F.interpolate(outputs_masks, size=(min_orig_h, min_orig_w),
+                                  mode="bilinear").sigmoid() > self.threshold
             ).cpu()
             for i, cur_mask in enumerate(outputs_masks):
                 results[i]["masks"] = cur_mask.unsqueeze(1)

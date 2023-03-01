@@ -124,11 +124,8 @@ class MDETR(nn.Module):
         if not isinstance(samples, NestedTensor):
             samples = NestedTensor.from_tensor_list(samples)
 
-        if encode_and_save: # First round of forward pass
+        if encode_and_save:
             assert memory_cache is None
-            # samples is a NestedTensor. samples.tensor: [bs, 3, h, w], samples.mask: [bs, h, w]
-            # features: [bs, 256, h/32, w/32]
-            # mask: [bs, h/32, w/32]
             features, pos = self.backbone(samples)
             src, mask = features[-1].decompose()
             query_embed = self.query_embed.weight
@@ -152,9 +149,9 @@ class MDETR(nn.Module):
 
             return memory_cache
 
-        else: # Second round of forward pass
+        else:
             assert memory_cache is not None
-            hs = self.transformer(         # transformer: (batch_size, d_model, featH, featW) -> [layerNum, bs, num_queries, d_model]
+            hs = self.transformer(
                 mask=memory_cache["mask"],
                 query_embed=memory_cache["query_embed"],
                 pos_embed=memory_cache["pos_embed"],
@@ -164,7 +161,7 @@ class MDETR(nn.Module):
                 text_attention_mask=memory_cache["text_attention_mask"],
             )
             out = {}
-            if self.qa_dataset is not None: # False
+            if self.qa_dataset is not None:
                 if self.split_qa_heads:
                     if self.qa_dataset == "gqa":
                         answer_embeds = hs[0, :, -6:]
@@ -190,8 +187,8 @@ class MDETR(nn.Module):
                     hs = hs[:, :, :-1]
                     out["pred_answer"] = self.answer_head(answer_embeds)
 
-            outputs_class = self.class_embed(hs) # (laynum, bs, num_queries, d_model) -> (laynum, bs, num_queries, num_classes)
-            outputs_coord = self.bbox_embed(hs).sigmoid() # (laynum, bs, num_queries, d_model) -> (laynum, bs, num_queries, 4)
+            outputs_class = self.class_embed(hs)
+            outputs_coord = self.bbox_embed(hs).sigmoid()
             out.update(
                 {
                     "pred_logits": outputs_class[-1],
@@ -203,9 +200,9 @@ class MDETR(nn.Module):
                 outputs_isfinal = self.isfinal_embed(hs)
                 out["pred_isfinal"] = outputs_isfinal[-1]
             proj_queries, proj_tokens = None, None
-            if self.contrastive_align_loss: # True
-                proj_queries = F.normalize(self.contrastive_align_projection_image(hs), p=2, dim=-1) # (laynum, bs, num_queries, contrastive_hdim)
-                proj_tokens = F.normalize( # (bs, text_token_num, contrastive_hdim)
+            if self.contrastive_align_loss:
+                proj_queries = F.normalize(self.contrastive_align_projection_image(hs), p=2, dim=-1)
+                proj_tokens = F.normalize(
                     self.contrastive_align_projection_text(memory_cache["text_memory"]).transpose(0, 1), p=2, dim=-1
                 )
                 out.update(
@@ -215,8 +212,8 @@ class MDETR(nn.Module):
                         "tokenized": memory_cache["tokenized"],
                     }
                 )
-            if self.aux_loss: # True
-                if self.contrastive_align_loss: # True
+            if self.aux_loss:
+                if self.contrastive_align_loss:
                     assert proj_tokens is not None and proj_queries is not None
                     out["aux_outputs"] = [
                         {
@@ -228,7 +225,7 @@ class MDETR(nn.Module):
                         }
                         for a, b, c in zip(outputs_class[:-1], outputs_coord[:-1], proj_queries[:-1])
                     ]
-                else: # False
+                else:
                     out["aux_outputs"] = [
                         {
                             "pred_logits": a,
@@ -236,7 +233,7 @@ class MDETR(nn.Module):
                         }
                         for a, b in zip(outputs_class[:-1], outputs_coord[:-1])
                     ]
-                if outputs_isfinal is not None: # False
+                if outputs_isfinal is not None:
                     assert len(outputs_isfinal[:-1]) == len(out["aux_outputs"])
                     for i in range(len(outputs_isfinal[:-1])):
                         out["aux_outputs"][i]["pred_isfinal"] = outputs_isfinal[i]
@@ -353,7 +350,8 @@ class QACriterionGQA(nn.Module):
 
         loss["accuracy_answer_total"] = (
                                                 type_acc
-                                                * (is_obj * obj_acc + is_rel * rel_acc + is_attr * attr_acc + is_global * global_acc + is_cat * cat_acc)
+                                                * (
+                                                        is_obj * obj_acc + is_rel * rel_acc + is_attr * attr_acc + is_global * global_acc + is_cat * cat_acc)
                                         ).sum() / type_acc.numel()
 
         return loss
@@ -376,7 +374,8 @@ class QACriterionClevr(nn.Module):
 
         binary_norm = is_binary.sum() if is_binary.any() else 1.0
         loss["loss_answer_binary"] = (
-                F.binary_cross_entropy_with_logits(output["pred_answer_binary"], answers["answer_binary"], reduction="none")
+                F.binary_cross_entropy_with_logits(output["pred_answer_binary"], answers["answer_binary"],
+                                                   reduction="none")
                 .masked_fill(~is_binary, 0)
                 .sum()
                 / binary_norm
@@ -481,6 +480,8 @@ class SetCriterion(nn.Module):
         tgt_pos = positive_map[tgt_idx]
         target_sim = torch.zeros_like(logits)
         target_sim[:, :, -1] = 1
+        a = target_sim[src_idx]
+        b = target_sim[src_idx[0]]
         target_sim[src_idx] = tgt_pos
 
         loss_ce = -(logits * target_sim).sum(-1)
@@ -501,7 +502,7 @@ class SetCriterion(nn.Module):
 
         normalized_text_emb = outputs["proj_tokens"]  # BS x (num_tokens) x hdim
         normalized_img_emb = outputs["proj_queries"]  # BS x (num_queries) x hdim
-
+        # 计算了每个预测输出特征与文本中token特征之间的点乘，为后续计算两个向量之间的相似性做了准备。
         logits = (
                 torch.matmul(normalized_img_emb, normalized_text_emb.transpose(-1, -2)) / self.temperature
         )  # BS x (num_queries) x (num_tokens)
@@ -537,13 +538,13 @@ class SetCriterion(nn.Module):
                         continue
 
                     assert beg_pos is not None and end_pos is not None
-                    positive_map[i, idx_src[j], beg_pos: end_pos + 1].fill_(True)
+                    positive_map[i, idx_src[j], beg_pos: end_pos + 1].fill_(True)  # 找出了预测的目标对应的phrase在句子中的位置。
 
         positive_map = positive_map.to(logits.device)
-        positive_logits = -logits.masked_fill(~positive_map, 0)
+        positive_logits = -logits.masked_fill(~positive_map, 0)  # 保留图像目标特征与预测的phrase特征对应位置的距离，其他位置置零。
         negative_logits = logits  # .masked_fill(positive_map, -1000000)
 
-        boxes_with_pos = positive_map.any(2)
+        boxes_with_pos = positive_map.any(2)  # 找到预测正确的预测输出，并将其标注为true
         pos_term = positive_logits.sum(2)
         neg_term = negative_logits.logsumexp(2)
 
@@ -666,7 +667,8 @@ class SetCriterion(nn.Module):
         outputs_without_aux = {k: v for k, v in outputs.items() if k != "aux_outputs"}
 
         # Retrieve the matching between the outputs of the last layer and the targets
-        indices = self.matcher(outputs_without_aux, targets, positive_map)
+        indices = self.matcher(outputs_without_aux, targets,
+                               positive_map)  # 通过匈牙利算法，把预测的图像目标与文本中的phrase对应起来。后续的优化都以indices为中心展开。
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
         num_boxes = sum(len(t["labels"]) for t in targets)
@@ -681,7 +683,7 @@ class SetCriterion(nn.Module):
             losses.update(self.get_loss(loss, outputs, targets, positive_map, indices, num_boxes))
 
         # In case of auxiliary losses, we repeat this process with the output of each intermediate layer.
-        if "aux_outputs" in outputs:
+        if "aux_outputs" in outputs:  # 使用不同层的输出计算损失。
             for i, aux_outputs in enumerate(outputs["aux_outputs"]):
                 indices = self.matcher(aux_outputs, targets, positive_map)
                 for loss in self.losses:

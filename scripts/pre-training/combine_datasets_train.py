@@ -102,7 +102,8 @@ def rescale_boxes(old_datapoint: Datapoint, old_size: Tuple[int, int], new_size:
 
 
 def combine_dataset_datapoints(
-        dataset_dicts: Dict[str, List[Datapoint]], vg_imid2data: Dict[int, Dict], coco_imid2data: Dict[str, Dict], coco_path: str,
+        dataset_dicts: Dict[str, List[Datapoint]], vg_imid2data: Dict[int, Dict], coco_imid2data: Dict[str, Dict],
+        coco_path: str,
 ) -> Tuple[Dict[str, List[Datapoint]], Dict[str, List[Datapoint]]]:
     """This functions accepts a dict from the 'dataset_name' to the list of datapoints we have for this dataset.
     It splits the data points based on whether we have a coco id or a vg id for the images.
@@ -339,7 +340,8 @@ def main(args):
         coco_image_data = json.load(f)
     imid2data_coco = {str(x["id"]): x for x in coco_image_data["images"]}
 
-    combined_dict_coco, combined_dict_vg = combine_dataset_datapoints(dset_dicts, vg_imid2data, imid2data_coco, coco_path=args.coco_path)
+    combined_dict_coco, combined_dict_vg = combine_dataset_datapoints(dset_dicts, vg_imid2data, imid2data_coco,
+                                                                      coco_path=args.coco_path)
     datapoint_list_coco = get_refexp_groups(combined_dict_coco)
     datapoint_list_vg = get_refexp_groups(combined_dict_vg)
 

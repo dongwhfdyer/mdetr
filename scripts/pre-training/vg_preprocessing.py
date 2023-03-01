@@ -152,7 +152,8 @@ def deduplicate_regions(regions, iou_threshold=0.5):
                 for b1 in range(len(regions[r1]["cano_tokens"])):
                     for b2 in range(len(regions[r2]["cano_tokens"])):
                         if (len(regions[r1]["cano_tokens"][b1]) == 0 or len(regions[r2]["cano_tokens"][b2]) == 0) or (
-                                spanlist_intersect_spanlist(regions[r1]["cano_tokens"][b1], regions[r2]["cano_tokens"][b2])
+                                spanlist_intersect_spanlist(regions[r1]["cano_tokens"][b1],
+                                                            regions[r2]["cano_tokens"][b2])
                                 and ious[b1][b2] < iou_threshold
                         ):
                             compatible = False

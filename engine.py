@@ -58,26 +58,27 @@ def train_one_epoch(
         targets = batch_dict["targets"]
         answers = {k: v.to(device) for k, v in batch_dict["answers"].items()} if "answers" in batch_dict else None
         captions = [t["caption"] for t in targets]
-
+        retrived_caption = [i["retrived_caption"] for i in targets]
+        text = {"captions": captions, "retrived_caption": retrived_caption}
         targets = targets_to(targets, device)
 
         memory_cache = None
-        if args.masks:  # False
-            outputs = model(samples, captions)
-        else:  # True
-            memory_cache = model(samples, captions, encode_and_save=True)
-            outputs = model(samples, captions, encode_and_save=False, memory_cache=memory_cache)
+        if args.masks:
+            outputs = model(samples, text)
+        else:
+            memory_cache = model(samples, text, encode_and_save=True)
+            outputs = model(samples, text, encode_and_save=False, memory_cache=memory_cache)
 
         loss_dict = {}
-        if criterion is not None:  # True
+        if criterion is not None:
             loss_dict.update(criterion(outputs, targets, positive_map))
 
-        if contrastive_criterion is not None:  # False
+        if contrastive_criterion is not None:
             assert memory_cache is not None
             contrastive_loss = contrastive_criterion(memory_cache["text_pooled_op"], memory_cache["img_pooled_op"])
             loss_dict["contrastive_loss"] = contrastive_loss
 
-        if qa_criterion is not None:  # False
+        if qa_criterion is not None:
             answer_losses = qa_criterion(outputs, answers)
             loss_dict.update(answer_losses)
 
@@ -91,14 +92,14 @@ def train_one_epoch(
 
         loss_value = losses_reduced_scaled.item()
 
-        if not math.isfinite(loss_value):  # False
+        if not math.isfinite(loss_value):
             print("Loss is {}, stopping training".format(loss_value))
             print(loss_dict_reduced)
             sys.exit(1)
 
         optimizer.zero_grad()
         losses.backward()
-        if max_norm > 0:  # True
+        if max_norm > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
         optimizer.step()
 
@@ -109,7 +110,7 @@ def train_one_epoch(
             num_training_steps=num_training_steps,
             args=args,
         )
-        if model_ema is not None:  # True
+        if model_ema is not None:
             update_ema(model, model_ema, args.ema_decay)
 
         metric_logger.update(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled)
@@ -184,16 +185,16 @@ def evaluate(
             **loss_dict_reduced_scaled,
             **loss_dict_reduced_unscaled,
         )
-        if not args.no_detection:  # True
+
+        if not args.no_detection:
             orig_target_sizes = torch.stack([t["orig_size"] for t in targets], dim=0)
-            # results: scores (N, 100), labels (N, 100), boxes (N, 100, 4)
             results = postprocessors["bbox"](outputs, orig_target_sizes)
-            if "segm" in postprocessors.keys():  # False
+            if "segm" in postprocessors.keys():
                 target_sizes = torch.stack([t["size"] for t in targets], dim=0)
                 results = postprocessors["segm"](results, outputs, orig_target_sizes, target_sizes)
 
             flickr_res = [] if "flickr_bbox" in postprocessors.keys() else None
-            if "flickr_bbox" in postprocessors.keys():  # False
+            if "flickr_bbox" in postprocessors.keys():
                 image_ids = [t["original_img_id"] for t in targets]
                 sentence_ids = [t["sentence_id"] for t in targets]
                 items_per_batch_element = [t["nb_eval"] for t in targets]
@@ -206,7 +207,7 @@ def evaluate(
                     flickr_res.append({"image_id": im_id, "sentence_id": sent_id, "boxes": output})
 
             phrasecut_res = None
-            if "phrasecut" in postprocessors.keys():  # False
+            if "phrasecut" in postprocessors.keys():
                 phrasecut_res = postprocessors["phrasecut"](results)
                 assert len(targets) == len(phrasecut_res)
                 for i in range(len(targets)):

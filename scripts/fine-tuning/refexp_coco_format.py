@@ -45,7 +45,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def convert(dataset_path: Path, dataset_name: str, split: str, output_path, coco_path, next_img_id: int = 0, next_id: int = 0):
+def convert(dataset_path: Path, dataset_name: str, split: str, output_path, coco_path, next_img_id: int = 0,
+            next_id: int = 0):
     """Do the heavy lifting on the given split (eg 'train')"""
 
     print(f"Exporting {split}...")

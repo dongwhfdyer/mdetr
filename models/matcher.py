@@ -65,6 +65,9 @@ class HungarianMatcher(nn.Module):
         assert len(tgt_bbox) == len(positive_map)
 
         # Compute the soft-cross entropy between the predicted token alignment and the GT one for each box
+        a = out_prob.unsqueeze(1)
+        b = positive_map.unsqueeze(0)
+        c = a * b
         cost_class = -(out_prob.unsqueeze(1) * positive_map.unsqueeze(0)).sum(-1)
 
         # Compute the L1 cost between boxes

@@ -11,16 +11,21 @@ import torch
 import torch.utils.data
 import torchvision
 from pycocotools import mask as coco_mask
-
+import json
 import datasets.transforms as T
 
 
 class ModulatedDetection(torchvision.datasets.CocoDetection):
-    def __init__(self, img_folder, ann_file, transforms, return_masks, return_tokens, tokenizer, is_train=False):
+    def __init__(self, img_folder, ann_file, retrived_caption_file, transforms, return_masks, return_tokens, tokenizer,
+                 is_train=False):
         super(ModulatedDetection, self).__init__(img_folder, ann_file)
         self._transforms = transforms
         self.prepare = ConvertCocoPolysToMask(return_masks, return_tokens, tokenizer=tokenizer)
         self.is_train = is_train
+        self.retrived_caption_file = retrived_caption_file
+        with open(self.retrived_caption_file, 'r') as f1:
+            self.retrive_caption = json.loads(f1.read())
+        f1.close()
 
     def __getitem__(self, idx):
         img, target = super(ModulatedDetection, self).__getitem__(idx)
@@ -33,6 +38,7 @@ class ModulatedDetection(torchvision.datasets.CocoDetection):
         if self._transforms is not None:
             img, target = self._transforms(img, target)
         target["dataset_name"] = dataset_name
+        target["retrived_caption"] = self.retrive_caption[coco_img['file_name'][:-4]]
         for extra_key in ["sentence_id", "original_img_id", "original_id", "task_id"]:
             if extra_key in coco_img:
                 target[extra_key] = coco_img[extra_key]
@@ -79,7 +85,7 @@ def convert_coco_poly_to_mask(segmentations, height, width):
 
 
 def create_positive_map(tokenized, tokens_positive):
-    """construct a map such that positive_map[i,j] = True iff box i is associated to token j"""
+    """construct a map such that positive_map[i,j] = True if box i is associated to token j"""
     positive_map = torch.zeros((len(tokens_positive), 256), dtype=torch.float)
     for j, tok_list in enumerate(tokens_positive):
         for (beg, end) in tok_list:
@@ -119,6 +125,7 @@ class ConvertCocoPolysToMask(object):
         image_id = target["image_id"]
         image_id = torch.tensor([image_id])
 
+        # retrived_caption = target["retrived_caption"]
         anno = target["annotations"]
         caption = target["caption"] if "caption" in target else None
 
@@ -134,12 +141,12 @@ class ConvertCocoPolysToMask(object):
         classes = [obj["category_id"] for obj in anno]
         classes = torch.tensor(classes, dtype=torch.int64)
 
-        if self.return_masks: # False
+        if self.return_masks:
             segmentations = [obj["segmentation"] for obj in anno]
             masks = convert_coco_poly_to_mask(segmentations, h, w)
 
         keypoints = None
-        if anno and "keypoints" in anno[0]: # False
+        if anno and "keypoints" in anno[0]:
             keypoints = [obj["keypoints"] for obj in anno]
             keypoints = torch.as_tensor(keypoints, dtype=torch.float32)
             num_keypoints = keypoints.shape[0]
@@ -198,6 +205,7 @@ class ConvertCocoPolysToMask(object):
             assert len(target["boxes"]) == len(target["tokens_positive"])
             tokenized = self.tokenizer(caption, return_tensors="pt")
             target["positive_map"] = create_positive_map(tokenized, target["tokens_positive"])
+        # target["retrived_caption"] = retrived_caption
         return image, target
 
 
@@ -205,6 +213,7 @@ def make_coco_transforms(image_set, cautious):
     normalize = T.Compose([T.ToTensor(), T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     scales = [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800]
+    # scales = [480, 512, 544, 576, 608, 640]
 
     max_size = 1333
     if image_set == "train":
