@@ -56,7 +56,7 @@ class CustomCocoDetection(VisionDataset):
         self.root_coco = root_coco
         self.root_vg = root_vg
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+    def __getitem__(self, index: int) -> Tuple[Any, Any, Any]:
         """
         Args:
             index (int): Index
@@ -81,7 +81,7 @@ class CustomCocoDetection(VisionDataset):
         if self.transforms is not None:
             img, target = self.transforms(img, target)
 
-        return img, target
+        return path[:-4], img, target
 
     def __len__(self) -> int:
         return len(self.ids)
@@ -96,7 +96,7 @@ class MixedDetection(CustomCocoDetection):
         self.prepare = ConvertCocoPolysToMask(return_masks, return_tokens, tokenizer=tokenizer)
 
     def __getitem__(self, idx):
-        img, target_original = super(MixedDetection, self).__getitem__(idx)
+        img_path, img, target_original = super(MixedDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
         caption = self.coco.loadImgs(image_id)[0]["caption"]
         # target["retrived_caption"] = target_original[-1]
@@ -106,7 +106,7 @@ class MixedDetection(CustomCocoDetection):
 
         if self._transforms is not None:
             img, target = self._transforms(img, target)
-        return img, target
+        return img, target, img_path
 
 
 def build(image_set, args):

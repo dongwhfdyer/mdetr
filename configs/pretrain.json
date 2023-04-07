@@ -1,14 +1,20 @@
 {
-    "combine_datasets": ["flickr","mixed"],
-    "combine_datasets_val": ["flickr"],
-    "coco_path": "/home/pcl/nvidia-code/data/coco/",
-    "vg_img_path": "/home/pcl/nvidia-code/data/images",
-    "flickr_img_path": "/home/pcl/nvidia-code/data/",
-    "refexp_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
-    "flickr_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
-    "gqa_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
-    "refexp_dataset_name": "all",
-    "GT_type": "separate",
-    "flickr_dataset_path": ""
+  "combine_datasets": [
+    "flickr",
+    "mixed"
+  ],
+  "combine_datasets_val": [
+    "flickr"
+  ],
+  "coco_path": "/home/pcl/nvidia-code/data/coco/",
+  "vg_img_path": "/home/pcl/nvidia-code/data/images",
+  "flickr_img_path": "/home/pcl/nvidia-code/data/",
+  "refexp_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
+  "flickr_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
+  "gqa_ann_path": "/home/pcl/nvidia-code/data/OpenSource/",
+  "refexp_dataset_name": "all",
+  "GT_type": "separate",
+  "flickr_dataset_path": "",
+  "save_dir": "/home/pcl/proj/mdetr_output"
 }
 

@@ -31,6 +31,7 @@ class ModulatedDetection(torchvision.datasets.CocoDetection):
         img, target = super(ModulatedDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
         coco_img = self.coco.loadImgs(image_id)[0]
+        img_name = coco_img["file_name"][:-4]
         caption = coco_img["caption"]
         dataset_name = coco_img["dataset_name"] if "dataset_name" in coco_img else None
         target = {"image_id": image_id, "annotations": target, "caption": caption}
@@ -48,7 +49,7 @@ class ModulatedDetection(torchvision.datasets.CocoDetection):
             target["positive_map_eval"] = create_positive_map(tokenized, coco_img["tokens_positive_eval"])
             target["nb_eval"] = len(target["positive_map_eval"])
 
-        return img, target
+        return img, target, img_name
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):

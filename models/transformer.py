@@ -175,7 +175,7 @@ class Transformer(nn.Module):
 
             assert img_memory.shape[1] == text_memory.shape[1] == tgt.shape[1]
             memory_cache = {
-                "text_memory_resized": text_memory_resized,
+                "text_memory_resized": text_memory_resized, # save it
                 "text_memory": text_memory,
                 "img_memory": img_memory,
                 "text_pooled_op": encoded_text.pooler_output if self.CLS is not None else None,
@@ -183,7 +183,7 @@ class Transformer(nn.Module):
                 "mask": mask,
                 "text_attention_mask": text_attention_mask,
                 "pos_embed": pos_embed,
-                "query_embed": retrived_text_memory_resized,
+                "query_embed": retrived_text_memory_resized, # save it
                 "tokenized": tokenized,
             }
             return memory_cache

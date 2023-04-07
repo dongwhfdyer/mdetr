@@ -40,6 +40,7 @@ def collate_fn(do_round, batch):
     final_batch = {}
     final_batch["samples"] = NestedTensor.from_tensor_list(batch[0], do_round)
     final_batch["targets"] = batch[1]
+    final_batch["img_names"] = batch[2]
     if "positive_map" in batch[1][0]:
         # we batch the positive maps here
         # Since in general each batch element will have a different number of boxes,

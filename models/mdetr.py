@@ -147,7 +147,7 @@ class MDETR(nn.Module):
                 memory_cache["text_pooled_op"] = self.contrastive_projection_text(memory_cache["text_pooled_op"])
                 memory_cache["img_pooled_op"] = self.contrastive_projection_image(memory_cache["img_pooled_op"])
 
-            return memory_cache
+            return memory_cache, features, pos  # todo: it's only for saving features.
 
         else:
             assert memory_cache is not None

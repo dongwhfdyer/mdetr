@@ -3,10 +3,14 @@
 """
 Train and eval functions used in main.py
 """
+import itertools
 import math
+import h5py
 import sys
+from pathlib import Path
 from typing import Dict, Iterable, Optional
 
+import numpy
 import torch
 import torch.nn
 import torch.optim
@@ -53,6 +57,7 @@ def train_one_epoch(
     num_training_steps = int(len(data_loader) * args.epochs)
     for i, batch_dict in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         curr_step = epoch * len(data_loader) + i
+        img_names = batch_dict["img_names"]
         samples = batch_dict["samples"].to(device)
         positive_map = batch_dict["positive_map"].to(device) if "positive_map" in batch_dict else None
         targets = batch_dict["targets"]
@@ -148,6 +153,7 @@ def evaluate(
     header = "Test:"
 
     for batch_dict in metric_logger.log_every(data_loader, 10, header):
+        names = batch_dict["img_names"]
         samples = batch_dict["samples"].to(device)
         positive_map = batch_dict["positive_map"].to(device) if "positive_map" in batch_dict else None
         targets = batch_dict["targets"]
@@ -265,3 +271,95 @@ def evaluate(
         stats["phrasecut"] = phrasecut_res
 
     return stats
+
+
+@torch.no_grad()
+def saving_features(
+        model: torch.nn.Module,
+        data_loader,
+        device: torch.device,
+        args,
+):
+    save_dir = Path(args.save_dir)
+
+    SAVE_FILE = save_dir / "features.hdf5"
+    if SAVE_FILE.exists():
+        SAVE_FILE.unlink()
+    model.eval()
+
+    metric_logger = MetricLogger(delimiter="  ")
+    header = "saving features:"
+    batch_num = 0
+    for batch_dict in metric_logger.log_every(data_loader, 10, header):
+        names = batch_dict["img_names"]
+        samples = batch_dict["samples"].to(device)
+        targets = batch_dict["targets"]
+        captions = [t["caption"] for t in targets]
+        retrived_caption = [i["retrived_caption"] for i in targets]
+        text = {"captions": captions, "retrived_caption": retrived_caption}
+
+        memory_cache = None
+        memory_cache, features, pos = model(samples, text, encode_and_save=True)
+
+        # print the gpu id
+        # memory_cache["query_embed"]
+        # memory_cache["text_memory_resized"]
+        # ---------kkuhn-block------------------------------ # saving features
+
+        names = dist.all_gather(names)
+        features = dist.all_gather(features)
+        pos = dist.all_gather(pos)
+        memory_cache = dist.all_gather(memory_cache)
+        names_existed = []
+        if dist.is_main_process():
+            with h5py.File(save_dir / "features.hdf5", "a") as f:
+                for ii, names_per_gpu in enumerate(names):
+                    for i, name in enumerate(names_per_gpu):
+                        if name not in names_existed:
+                            names_existed.append(name)
+                        else:
+                            continue
+                        g1 = f.create_group(name)
+                        mask = features[ii][0].mask[i].cpu().numpy()
+                        tensors = features[ii][0].tensors[i].cpu().numpy()
+                        g1.create_dataset("mask", data=mask)
+                        g1.create_dataset("tensors", data=tensors)
+                        pos_info = pos[ii][0][i].cpu().numpy()
+                        g1.create_dataset("pos", data=pos_info)
+                        query_embed = memory_cache[ii]["query_embed"].cpu()[:, i, :].numpy()
+                        g1.create_dataset("query_embed", data=query_embed)
+                        text_memory_resized = memory_cache[ii]["text_memory_resized"].cpu()[:, i, :].numpy()
+                        g1.create_dataset("text_memory_resized", data=text_memory_resized)
+
+            #     for i, name in enumerate(names):
+            #         g1 = f.create_group(name)
+            #         mask = features[0].mask[i].cpu().numpy()
+            #         tensors = features[0].tensors[i].cpu().numpy()
+            #         g1.create_dataset("mask", data=mask)
+            #         g1.create_dataset("tensors", data=tensors)
+            #         pos_info = pos[0][i].cpu().numpy()
+            #         g1.create_dataset("pos", data=pos_info)
+            #         query_embed = memory_cache["query_embed"].cpu()[:, i, :].numpy()
+            #         g1.create_dataset("query_embed", data=query_embed)
+            #         text_memory_resized = memory_cache["text_memory_resized"].cpu()[:, i, :].numpy()
+            #         g1.create_dataset("text_memory_resized", data=text_memory_resized)
+            # # ---------kkuhn-block------------------------------
+            #
+            # # read the features
+            # with h5py.File(save_dir / "features.hdf5", "r") as f:
+            #     for name in names:
+            #         feat = f[name]["mask"]
+            #         pos = f[name]["pos"]
+            #         query_embed = f[name]["query_embed"]
+            #         text_memory_resized = f[name]["text_memory_resized"]
+            #         print("--------------------------------------------------")
+            #
+            # # read the features from the hdf5 file. get a new handler
+            # ff = h5py.File(save_dir / "features.hdf5", "r")
+            # for name in names:
+            #     import numpy as np
+            #     feat = torch.tensor(np.array(ff[name]["mask"]))
+            #     pos = torch.tensor(np.array(ff[name]["pos"]))
+            #     query_embed = torch.tensor(ff[name]["query_embed"])
+            #     text_memory_resized = torch.tensor(ff[name]["text_memory_resized"])
+            #     print("--------------------------------------------------")

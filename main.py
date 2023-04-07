@@ -24,7 +24,7 @@ from datasets.coco_eval import CocoEvaluator
 from datasets.flickr_eval import FlickrEvaluator
 from datasets.phrasecut_eval import PhrasecutEvaluator
 from datasets.refexp import RefExpEvaluator
-from engine import evaluate, train_one_epoch
+from engine import evaluate, train_one_epoch, saving_features
 from models import build_model
 from models.postprocessors import build_postprocessors
 
@@ -70,7 +70,7 @@ def get_args_parser():
     parser.add_argument("--lr", default=1e-4, type=float)
     parser.add_argument("--lr_backbone", default=1e-5, type=float)
     parser.add_argument("--text_encoder_lr", default=5e-5, type=float)
-    parser.add_argument("--batch_size", default=4, type=int)
+    parser.add_argument("--batch_size", default=5, type=int)
     parser.add_argument("--weight_decay", default=1e-4, type=float)
     parser.add_argument("--epochs", default=40, type=int)
     parser.add_argument("--lr_drop", default=35, type=int)
@@ -376,7 +376,7 @@ def main(args):
                 samplers_train = [torch.utils.data.RandomSampler(ds) for ds in datasets]
 
             batch_samplers_train = [
-                torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=True)
+                torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=False)  # todo: for inference
                 for sampler_train in samplers_train
             ]
             assert len(batch_samplers_train) == len(datasets)
@@ -391,9 +391,9 @@ def main(args):
             ]
         else:
             if args.distributed:
-                sampler_train = DistributedSampler(dataset_train)
+                sampler_train = DistributedSampler(dataset_train, shuffle=False)
             else:
-                sampler_train = torch.utils.data.RandomSampler(dataset_train)
+                sampler_train = torch.utils.data.Sampler(dataset_train)
 
             batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=True)
             data_loader_train = DataLoader(
@@ -504,33 +504,44 @@ def main(args):
 
     # Runs only evaluation, by default on the validation set unless --test is passed.
     if args.eval:
-        test_stats = {}
-        test_model = model_ema if model_ema is not None else model
         for i, item in enumerate(val_tuples):
-            evaluator_list = build_evaluator_list(item.base_ds, item.dataset_name)
-            postprocessors = build_postprocessors(args, item.dataset_name)
-            item = item._replace(evaluator_list=evaluator_list)
-            print(f"Evaluating {item.dataset_name}")
-            curr_test_stats = evaluate(
-                model=test_model,
-                criterion=criterion,
-                contrastive_criterion=contrastive_criterion,
-                qa_criterion=qa_criterion,
-                postprocessors=postprocessors,
-                weight_dict=weight_dict,
+            saving_features(
+                model=model,
                 data_loader=item.dataloader,
-                evaluator_list=item.evaluator_list,
                 device=device,
                 args=args,
             )
-            test_stats.update({item.dataset_name + "_" + k: v for k, v in curr_test_stats.items()})
+        print("saving features done")
+        exit()
 
-        log_stats = {
-            **{f"test_{k}": v for k, v in test_stats.items()},
-            "n_parameters": n_parameters,
-        }
-        print(log_stats)
-        return
+    # if args.eval:
+    #     test_stats = {}
+    #     test_model = model_ema if model_ema is not None else model
+    #     for i, item in enumerate(val_tuples):
+    #         evaluator_list = build_evaluator_list(item.base_ds, item.dataset_name)
+    #         postprocessors = build_postprocessors(args, item.dataset_name)
+    #         item = item._replace(evaluator_list=evaluator_list)
+    #         print(f"Evaluating {item.dataset_name}")
+    #         curr_test_stats = evaluate(
+    #             model=test_model,
+    #             criterion=criterion,
+    #             contrastive_criterion=contrastive_criterion,
+    #             qa_criterion=qa_criterion,
+    #             postprocessors=postprocessors,
+    #             weight_dict=weight_dict,
+    #             data_loader=item.dataloader,
+    #             evaluator_list=item.evaluator_list,
+    #             device=device,
+    #             args=args,
+    #         )
+    #         test_stats.update({item.dataset_name + "_" + k: v for k, v in curr_test_stats.items()})
+    #
+    #     log_stats = {
+    #         **{f"test_{k}": v for k, v in test_stats.items()},
+    #         "n_parameters": n_parameters,
+    #     }
+    #     print(log_stats)
+    #     return
 
     # Runs training and evaluates after every --eval_skip epochs
     print("Start training")
@@ -545,6 +556,16 @@ def main(args):
             print(f"Starting epoch {epoch}")
         if args.distributed:
             sampler_train.set_epoch(epoch)
+        # ---------kkuhn-block------------------------------ # saving features
+        saving_features(
+            model=model,
+            data_loader=data_loader_train,
+            device=device,
+            args=args,
+        )
+        print("saving features done")
+        exit()
+        # ---------kkuhn-block------------------------------
         train_stats = train_one_epoch(
             model=model,
             criterion=criterion,
